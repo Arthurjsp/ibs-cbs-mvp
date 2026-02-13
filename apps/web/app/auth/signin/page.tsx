@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
-  const [email, setEmail] = useState("admin@demo.local");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +46,7 @@ export default function SignInPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@demo.local"
+                placeholder="seu-email@empresa.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -61,4 +61,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
