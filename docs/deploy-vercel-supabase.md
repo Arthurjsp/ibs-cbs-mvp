@@ -1,27 +1,27 @@
-# Deploy remoto para validação (Vercel + Neon)
+# Deploy remoto para validação (Vercel + Supabase)
 
 Este guia permite que outra pessoa acesse o sistema pela internet e teste o estado atual do produto.
 
-## O que já foi preparado no código
+## O que já está preparado no código
 
 - Monorepo com `apps/web` (Next.js) e pacotes compartilhados.
-- Migration Prisma da transição já criada/aplicada no projeto.
+- Migrations Prisma versionadas.
 - Seed pronto para criar usuário `admin@demo.local`.
-- Storage local ajustado para usar `/tmp/uploads` em ambiente Vercel (evita erro de escrita em filesystem read-only).
+- Storage local ajustado para usar `/tmp/uploads` em ambiente Vercel.
 
 ## Limitação importante
 
 - Em Vercel, arquivos em `/tmp` são efêmeros.
-- O upload XML funciona para o fluxo de teste imediato, mas não é armazenamento permanente.
-- Para produção real, usar storage S3 (adaptador ainda está placeholder no MVP).
+- O upload XML funciona para fluxo de teste imediato, mas não é armazenamento permanente.
+- Para produção real, usar storage S3.
 
-## Pré-requisitos na sua máquina
+## Pré-requisitos
 
 - Node.js 20+
 - pnpm/corepack
 - Git
 - Conta GitHub
-- Conta Neon
+- Conta Supabase
 - Conta Vercel
 
 ## 1) Inicializar Git e publicar no GitHub
@@ -42,17 +42,21 @@ git branch -M main
 git push -u origin main
 ```
 
-## 2) Criar banco no Neon
+## 2) Criar banco no Supabase
 
-- Crie um projeto no Neon.
-- Copie a `DATABASE_URL` (postgresql://...).
+No projeto Supabase, copie duas URLs:
 
-## 3) Aplicar schema no banco remoto
+- `DATABASE_URL_RUNTIME`:
+  - use **Transaction Pooler** (porta 6543), recomendado para app em Vercel.
+- `DATABASE_URL_MIGRATION`:
+  - use **Session mode** (porta 5432), para rodar migration/seed.
 
-No PowerShell (mesma máquina do projeto):
+## 3) Aplicar schema no banco remoto (Supabase)
+
+No PowerShell:
 
 ```powershell
-$env:DATABASE_URL="SUA_DATABASE_URL_DO_NEON"
+$env:DATABASE_URL="DATABASE_URL_MIGRATION"
 corepack pnpm db:migrate:deploy
 corepack pnpm db:seed
 ```
@@ -67,16 +71,16 @@ corepack pnpm db:seed
 - Framework: Next.js
 - Root Directory: `apps/web`
 
-### Variáveis de ambiente (Production e Preview)
+### Variáveis de ambiente na Vercel (Production e Preview)
 
-- `DATABASE_URL` = URL do Neon
+- `DATABASE_URL` = `DATABASE_URL_RUNTIME`
 - `NEXTAUTH_SECRET` = segredo forte
-- `NEXTAUTH_URL` = URL final do projeto na Vercel (`https://seu-projeto.vercel.app`)
+- `NEXTAUTH_URL` = URL final do projeto (`https://seu-projeto.vercel.app`)
 - `JOBS_SYNC` = `true`
 - `STORAGE_DRIVER` = `local`
 - `STORAGE_LOCAL_DIR` = `/tmp/uploads`
 
-`NEXTAUTH_SECRET` (gerar localmente):
+Gerar `NEXTAUTH_SECRET`:
 
 ```powershell
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -84,24 +88,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 5) Deploy e validação
 
-- Faça o primeiro deploy.
-- Acesse a URL pública da Vercel.
+- Faça o primeiro deploy na Vercel.
+- Acesse a URL pública.
 - Login:
   - Email: `admin@demo.local`
 
-## 6) Fluxo recomendado de teste com seu sócio
+## 6) Fluxo de teste com seu sócio
 
-1. Fazer login.
-2. Ir em `/documents/upload`.
-3. Enviar `nfe-teste.xml`.
-4. Abrir o documento.
-5. Rodar cálculo e validar abas:
+1. Login.
+2. `/documents/upload` e envio de `nfe-teste.xml`.
+3. Abrir documento e calcular.
+4. Validar abas:
 - `Legado (ICMS/ISS)`
 - `IBS/CBS`
 - `Transição (Final)`
-6. Conferir `/dashboard`, `/scenarios`, `/reports`.
+5. Revisar `/dashboard`, `/scenarios`, `/reports`.
 
-## 7) Operação contínua (sempre que subir mudança)
+## 7) Operação contínua
 
 ```powershell
 git add .

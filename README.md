@@ -192,5 +192,5 @@ Detalhamento tecnico:
 
 ## Publicação remota para testes
 
-- Guia completo (GitHub + Neon + Vercel):
-  - `docs/deploy-vercel-neon.md`
+- Guia completo (GitHub + Supabase + Vercel):
+  - `docs/deploy-vercel-supabase.md`
