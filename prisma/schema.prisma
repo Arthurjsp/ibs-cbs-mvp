@@ -1,0 +1,331 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  FISCAL
+  CFO
+}
+
+enum RuleSetStatus {
+  DRAFT
+  ACTIVE
+}
+
+enum DocumentType {
+  NFE
+}
+
+enum OperationType {
+  SALE
+  PURCHASE
+}
+
+enum TenantPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum TelemetryEventType {
+  DOCUMENT_UPLOADED
+  CALCULATION_EXECUTED
+  SCENARIO_APPLIED
+  EXPORT_CSV
+  EXPORT_XLSX
+}
+
+model Tenant {
+  id               String           @id @default(cuid())
+  name             String
+  plan             TenantPlan       @default(FREE)
+  createdAt        DateTime         @default(now())
+  users            User[]
+  companyProfiles  CompanyProfile[]
+  taxRuleSets      TaxRuleSet[]
+  productCatalog   ProductCatalog[]
+  documents        Document[]
+  calcRuns         CalcRun[]
+  scenarios        Scenario[]
+  legacyRuleSets   LegacyRuleSet[]
+  icmsRates        ICMSRate[]
+  billingUsageRows BillingUsage[]
+  telemetryEvents  TelemetryEvent[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  tenantId      String
+  email         String
+  name          String?
+  role          UserRole  @default(ADMIN)
+  passwordHash  String?
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  accounts      Account[]
+  sessions      Session[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model CompanyProfile {
+  id         String     @id @default(cuid())
+  tenantId   String
+  legalName  String
+  cnpj       String?
+  uf         String
+  segment    String?
+  createdAt  DateTime   @default(now())
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents  Document[]
+
+  @@index([tenantId])
+}
+
+model TaxRuleSet {
+  id        String        @id @default(cuid())
+  tenantId  String
+  name      String
+  validFrom DateTime
+  validTo   DateTime?
+  status    RuleSetStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rules     TaxRule[]
+  calcRuns  CalcRun[]
+
+  @@index([tenantId, status, validFrom, validTo])
+}
+
+model TaxRule {
+  id          String     @id @default(cuid())
+  ruleSetId   String
+  priority    Int
+  whenJson    Json
+  thenJson    Json
+  description String
+  createdAt   DateTime   @default(now())
+  ruleSet     TaxRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+
+  @@index([ruleSetId, priority])
+}
+
+model ProductCatalog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  ncm         String
+  category    String
+  description String?
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, ncm])
+}
+
+model LegacyRuleSet {
+  id        String        @id @default(cuid())
+  tenantId  String
+  name      String
+  validFrom DateTime
+  validTo   DateTime?
+  status    RuleSetStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  icmsRates ICMSRate[]
+
+  @@index([tenantId, status, validFrom, validTo])
+}
+
+model ICMSRate {
+  id              String        @id @default(cuid())
+  tenantId        String
+  legacyRuleSetId String
+  uf              String
+  ncm             String?
+  category        String?
+  rate            Decimal       @db.Decimal(8, 6)
+  validFrom       DateTime
+  validTo         DateTime?
+  createdAt       DateTime      @default(now())
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  legacyRuleSet   LegacyRuleSet @relation(fields: [legacyRuleSetId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, uf, validFrom, validTo])
+  @@index([legacyRuleSetId])
+  @@index([tenantId, ncm])
+  @@index([tenantId, category])
+}
+
+model Document {
+  id               String         @id @default(cuid())
+  tenantId         String
+  companyProfileId String
+  type             DocumentType
+  key              String
+  issueDate        DateTime
+  emitterUf        String
+  recipientUf      String
+  operationType    OperationType  @default(SALE)
+  totalValue       Decimal        @db.Decimal(16, 2)
+  rawXmlPath       String?
+  createdAt        DateTime       @default(now())
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  companyProfile   CompanyProfile @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  items            DocumentItem[]
+  calcRuns         CalcRun[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, issueDate])
+}
+
+model DocumentItem {
+  id          String    @id @default(cuid())
+  documentId  String
+  lineNumber  Int
+  description String
+  ncm         String
+  cfop        String?
+  category    String?
+  quantity    Decimal   @db.Decimal(16, 4)
+  unitValue   Decimal   @db.Decimal(16, 4)
+  totalValue  Decimal   @db.Decimal(16, 2)
+  createdAt   DateTime  @default(now())
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  results     CalcItemResult[]
+
+  @@index([documentId, lineNumber])
+}
+
+model CalcRun {
+  id             String          @id @default(cuid())
+  tenantId       String
+  documentId     String
+  ruleSetId      String
+  scenarioId     String?
+  runAt          DateTime
+  parametersJson Json
+  createdAt      DateTime        @default(now())
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document       Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  ruleSet        TaxRuleSet      @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  scenario       Scenario?       @relation(fields: [scenarioId], references: [id], onDelete: SetNull)
+  itemResults    CalcItemResult[]
+  summary        CalcSummary?
+
+  @@index([tenantId, runAt])
+  @@index([documentId])
+}
+
+model CalcItemResult {
+  id             String       @id @default(cuid())
+  calcRunId      String
+  documentItemId String
+  ibsRate        Decimal      @db.Decimal(8, 6)
+  cbsRate        Decimal      @db.Decimal(8, 6)
+  ibsValue       Decimal      @db.Decimal(16, 2)
+  cbsValue       Decimal      @db.Decimal(16, 2)
+  taxBase        Decimal      @db.Decimal(16, 2)
+  creditEligible Boolean
+  auditJson      Json
+  componentsJson Json?
+  calcRun        CalcRun      @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
+  documentItem   DocumentItem @relation(fields: [documentItemId], references: [id], onDelete: Cascade)
+
+  @@index([calcRunId])
+}
+
+model CalcSummary {
+  id            String   @id @default(cuid())
+  calcRunId     String   @unique
+  ibsTotal      Decimal  @db.Decimal(16, 2)
+  cbsTotal      Decimal  @db.Decimal(16, 2)
+  creditTotal   Decimal  @db.Decimal(16, 2)
+  effectiveRate Decimal  @db.Decimal(8, 6)
+  auditJson     Json
+  componentsJson Json?
+  calcRun       CalcRun  @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
+}
+
+model Scenario {
+  id             String    @id @default(cuid())
+  tenantId       String
+  name           String
+  parametersJson Json
+  createdAt      DateTime  @default(now())
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  calcRuns       CalcRun[]
+
+  @@index([tenantId, createdAt])
+}
+
+model BillingUsage {
+  id           String   @id @default(cuid())
+  tenantId     String
+  monthRef     DateTime
+  simulationCount Int   @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, monthRef])
+}
+
+model TelemetryEvent {
+  id        String             @id @default(cuid())
+  tenantId  String
+  userId    String?
+  type      TelemetryEventType
+  timestamp DateTime           @default(now())
+  payload   Json?
+  createdAt DateTime           @default(now())
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, timestamp])
+  @@index([tenantId, type, timestamp])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

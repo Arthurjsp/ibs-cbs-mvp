@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mvp/shared/*": ["packages/shared/src/*"],
+      "@mvp/engine/*": ["packages/engine/src/*"],
+      "@mvp/legacy-engine/*": ["packages/legacy-engine/src/*"]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { AppNav } from "@/components/app-nav";
+import { SignOutButton } from "@/components/signout-button";
+
+export function HeaderShell({ email }: { email?: string | null }) {
+  const pathname = usePathname();
+  return (
+    <header className="border-b bg-card/80 backdrop-blur">
+      <div className="container-page flex items-center justify-between gap-4 py-4">
+        <div className="space-y-2">
+          <p className="font-serif text-xl font-semibold tracking-tight text-primary">Motor IBS/CBS</p>
+          <AppNav pathname={pathname} />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-sm text-muted-foreground md:inline">{email ?? "Sem usuário"}</span>
+          <SignOutButton />
+        </div>
+      </div>
+    </header>
+  );
+}
+
