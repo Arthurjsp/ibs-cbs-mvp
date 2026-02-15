@@ -73,6 +73,8 @@ pnpm dev
 - histórico de runs/cenários
 6. Crie cenários em `/scenarios` e recalcule.
 7. Exporte CSV em `/reports` por mês e cenário.
+8. Importe prévia oficial/manual em `/assisted-assessment` para reconciliar divergências.
+9. Acompanhe o ledger de créditos simulados em `/credits`.
 
 ## Billing scaffold
 
@@ -153,6 +155,8 @@ Campos de contexto:
   - `SCENARIO_APPLIED`
   - `EXPORT_CSV`
   - `EXPORT_XLSX`
+  - `ASSISTED_ASSESSMENT_IMPORTED`
+  - `DIVERGENCE_JUSTIFIED`
 - Endpoint de telemetria manual:
   - `POST /api/telemetry`
 
@@ -190,7 +194,22 @@ Detalhamento tecnico:
 - Detalhamento técnico:
   - `docs/phase-4-transition-legacy-ibs.md`
 
+## Fase 6 - Apuração Assistida e Divergências
+
+- Importação de prévia mensal (manual/oficial) para comparação com simulado.
+- Geração de divergências por métrica (`IBS_TOTAL`, `CBS_TOTAL`, `IS_TOTAL`, `EFFECTIVE_RATE`).
+- Justificativa e classificação de divergências com trilha de telemetria.
+- Detalhamento técnico:
+  - `docs/phase-6-assisted-assessment-divergences.md`
+
 ## Publicação remota para testes
 
 - Guia completo (GitHub + Supabase + Vercel):
   - `docs/deploy-vercel-supabase.md`
+
+## Posicionamento Tax Transition OS
+
+- O produto foi reposicionado para decisao tributaria e risco financeiro na transicao IBS/CBS.
+- Pagina de estrategia interna: `/strategy`.
+- Documento de estrategia e ICP: `docs/tax-transition-os.md`.
+- Objetivo comercial: nao competir como compliance commodity, e sim como cockpit de decisao para CFO/Controller.

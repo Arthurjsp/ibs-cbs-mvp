@@ -34,6 +34,9 @@ export interface RuleCondition {
 export interface RuleEffect {
   ibsRate?: number;
   cbsRate?: number;
+  isRate?: number;
+  taxBaseMultiplier?: number;
+  taxBaseReduction?: number;
   creditEligible?: boolean;
   notes?: string;
 }
@@ -58,6 +61,7 @@ export interface ScenarioParams {
   overrideRates?: {
     ibsRate?: number;
     cbsRate?: number;
+    isRate?: number;
   };
   pricePassThroughPercent?: number;
   transitionFactor?: number;
@@ -115,8 +119,10 @@ export interface CalcItemResult {
   documentItemId: string;
   ibsRate: number;
   cbsRate: number;
+  isRate: number;
   ibsValue: number;
   cbsValue: number;
+  isValue: number;
   taxBase: number;
   creditEligible: boolean;
   audit: RuleAuditEntry[];
@@ -126,6 +132,7 @@ export interface CalcItemResult {
 export interface CalcSummary {
   ibsTotal: number;
   cbsTotal: number;
+  isTotal: number;
   creditTotal: number;
   effectiveRate: number;
   itemCount: number;

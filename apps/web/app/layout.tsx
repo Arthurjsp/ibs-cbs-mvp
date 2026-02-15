@@ -6,8 +6,8 @@ import { Providers } from "@/components/providers";
 import { HeaderShell } from "@/components/header-shell";
 
 export const metadata = {
-  title: "Simulador IBS/CBS - MVP",
-  description: "Motor de cálculo estimado para reforma tributária com auditoria de regras."
+  title: "Tax Transition OS - MVP",
+  description: "Simulador estrategico de transicao IBS/CBS para decisao financeira e operacional."
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -25,4 +25,5 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     </html>
   );
 }
+
 

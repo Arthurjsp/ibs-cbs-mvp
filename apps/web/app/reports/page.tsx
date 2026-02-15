@@ -136,6 +136,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                 <TableHead>Cenário</TableHead>
                 <TableHead>IBS</TableHead>
                 <TableHead>CBS</TableHead>
+                <TableHead>IS</TableHead>
                 <TableHead>Effective Rate</TableHead>
               </TableRow>
             </TableHeader>
@@ -147,6 +148,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                   <TableCell>{run.scenario?.name ?? "Baseline"}</TableCell>
                   <TableCell>R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)}</TableCell>
                   <TableCell>R$ {Number(run.summary?.cbsTotal ?? 0).toFixed(2)}</TableCell>
+                  <TableCell>R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}</TableCell>
                   <TableCell>{Number(run.summary?.effectiveRate ?? 0).toFixed(6)}</TableCell>
                 </TableRow>
               ))}

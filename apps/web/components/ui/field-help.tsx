@@ -63,7 +63,7 @@ export function FieldHelp({
               type="button"
               aria-label={triggerLabel}
               aria-describedby={open ? tooltipId : undefined}
-              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
               onMouseEnter={() => {
                 if (!supportsHover) return;
                 if (openReason === "click") return;

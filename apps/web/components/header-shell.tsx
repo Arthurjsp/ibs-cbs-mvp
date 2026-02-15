@@ -10,7 +10,7 @@ export function HeaderShell({ email }: { email?: string | null }) {
     <header className="border-b bg-card/80 backdrop-blur">
       <div className="container-page flex items-center justify-between gap-4 py-4">
         <div className="space-y-2">
-          <p className="font-serif text-xl font-semibold tracking-tight text-primary">Motor IBS/CBS</p>
+          <p className="font-serif text-xl font-semibold tracking-tight text-primary">Tax Transition OS</p>
           <AppNav pathname={pathname} />
         </div>
         <div className="flex items-center gap-3">
@@ -21,4 +21,3 @@ export function HeaderShell({ email }: { email?: string | null }) {
     </header>
   );
 }
-

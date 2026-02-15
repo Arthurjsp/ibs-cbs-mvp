@@ -49,7 +49,7 @@ function composeItems(params: {
     }
 
     const legacyTax = roundTo(legacyItem.totalTax, 2);
-    const ibsTax = roundTo(ibsItem.ibsValue + ibsItem.cbsValue, 2);
+    const ibsTax = roundTo(ibsItem.ibsValue + ibsItem.cbsValue + ibsItem.isValue, 2);
     const weightedLegacyTax = roundTo(legacyTax * params.weights.legacy, 2);
     const weightedIbsTax = roundTo(ibsTax * params.weights.ibs, 2);
     const totalTax = roundTo(weightedLegacyTax + weightedIbsTax, 2);
@@ -82,7 +82,7 @@ function composeSummary(params: {
   ibs: ReturnType<typeof calculateDocument>;
 }): PersistedSummaryComponents {
   const legacyTaxTotal = roundTo(params.legacy.summary.totalTax, 2);
-  const ibsTaxTotal = roundTo(params.ibs.summary.ibsTotal + params.ibs.summary.cbsTotal, 2);
+  const ibsTaxTotal = roundTo(params.ibs.summary.ibsTotal + params.ibs.summary.cbsTotal + params.ibs.summary.isTotal, 2);
   const weightedLegacyTaxTotal = roundTo(legacyTaxTotal * params.weights.legacy, 2);
   const weightedIbsTaxTotal = roundTo(ibsTaxTotal * params.weights.ibs, 2);
   const totalTax = roundTo(weightedLegacyTaxTotal + weightedIbsTaxTotal, 2);

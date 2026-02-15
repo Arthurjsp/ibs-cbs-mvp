@@ -37,6 +37,9 @@ export const ruleConditionSchema: z.ZodType<any> = z.lazy(() =>
 export const ruleEffectSchema = z.object({
   ibsRate: z.number().min(0).max(1).optional(),
   cbsRate: z.number().min(0).max(1).optional(),
+  isRate: z.number().min(0).max(1).optional(),
+  taxBaseMultiplier: z.number().min(0).max(10).optional(),
+  taxBaseReduction: z.number().min(0).optional(),
   creditEligible: z.boolean().optional(),
   notes: z.string().optional()
 });
@@ -61,7 +64,8 @@ export const scenarioParamsSchema = z.object({
   overrideRates: z
     .object({
       ibsRate: z.number().min(0).max(1).optional(),
-      cbsRate: z.number().min(0).max(1).optional()
+      cbsRate: z.number().min(0).max(1).optional(),
+      isRate: z.number().min(0).max(1).optional()
     })
     .optional(),
   pricePassThroughPercent: z.number().min(0).max(100).optional(),

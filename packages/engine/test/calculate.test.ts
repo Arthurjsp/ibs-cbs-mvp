@@ -41,9 +41,9 @@ function makeInput(category: string): CalcInput {
         {
           id: "r-default",
           priority: 100,
-          description: "Regra padrão",
+          description: "Regra padrao",
           whenJson: { op: "and", conditions: [] },
-          thenJson: { ibsRate: 0.17, cbsRate: 0.09, creditEligible: true }
+          thenJson: { ibsRate: 0.17, cbsRate: 0.09, isRate: 0.02, creditEligible: true }
         },
         {
           id: "r-reduzida",
@@ -65,13 +65,15 @@ function makeInput(category: string): CalcInput {
 }
 
 describe("calculateDocument", () => {
-  it("aplica regra reduzida e gera auditoria", () => {
+  it("aplica regra reduzida e calcula IBS/CBS/IS", () => {
     const input = makeInput("REDUZIDA");
     const result = calculateDocument(input);
     expect(result.itemResults[0].ibsRate).toBe(0.1);
     expect(result.itemResults[0].cbsRate).toBe(0.05);
+    expect(result.itemResults[0].isRate).toBe(0.02);
     expect(result.summary.ibsTotal).toBe(100);
     expect(result.summary.cbsTotal).toBe(50);
+    expect(result.summary.isTotal).toBe(20);
     expect(result.itemResults[0].audit.some((a) => a.ruleId === "r-reduzida" && a.matched)).toBe(true);
   });
 
@@ -80,6 +82,7 @@ describe("calculateDocument", () => {
     const result = calculateDocument(input);
     expect(result.itemResults[0].ibsValue).toBe(0);
     expect(result.itemResults[0].cbsValue).toBe(0);
+    expect(result.itemResults[0].isValue).toBe(20);
     expect(result.itemResults[0].creditEligible).toBe(false);
   });
 
@@ -92,6 +95,24 @@ describe("calculateDocument", () => {
     const result = calculateDocument(input);
     expect(result.itemResults[0].ibsRate).toBe(0.085);
     expect(result.itemResults[0].cbsRate).toBe(0.045);
-    expect(result.itemResults[0].simulatedPrice).toBe(1065);
+    expect(result.itemResults[0].isRate).toBe(0.01);
+    expect(result.itemResults[0].simulatedPrice).toBe(1070);
+  });
+
+  it("aplica regras de base tributavel parametrizavel", () => {
+    const input = makeInput("NAO_CLASSIFICADA");
+    input.ruleSet.rules.unshift({
+      id: "r-base-ajustada",
+      priority: 150,
+      description: "Ajusta base em 80% com reducao fixa",
+      whenJson: { op: "and", conditions: [] },
+      thenJson: { taxBaseMultiplier: 0.8, taxBaseReduction: 100 }
+    });
+
+    const result = calculateDocument(input);
+    expect(result.itemResults[0].taxBase).toBe(720);
+    expect(result.itemResults[0].ibsValue).toBe(122.4);
+    expect(result.itemResults[0].cbsValue).toBe(64.8);
+    expect(result.itemResults[0].isValue).toBe(14.4);
   });
 });

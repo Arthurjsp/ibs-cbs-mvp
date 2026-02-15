@@ -2,6 +2,7 @@ export interface DashboardMonthlyRow {
   month: string;
   ibsTotal: number;
   cbsTotal: number;
+  isTotal: number;
   effectiveRate: number;
   simulations: number;
 }
@@ -11,6 +12,7 @@ interface RunLike {
   summary: {
     ibsTotal: number | { toNumber(): number };
     cbsTotal: number | { toNumber(): number };
+    isTotal: number | { toNumber(): number };
     effectiveRate: number | { toNumber(): number };
   } | null;
 }
@@ -48,14 +50,15 @@ export function calculateVariation(current: number, reference: number): MetricVa
 }
 
 export function buildMonthlyRows(runs: RunLike[]): DashboardMonthlyRow[] {
-  const grouped = new Map<string, { ibs: number; cbs: number; rateAcc: number; rateCount: number; simulations: number }>();
+  const grouped = new Map<string, { ibs: number; cbs: number; is: number; rateAcc: number; rateCount: number; simulations: number }>();
 
   for (const run of runs) {
     if (!run.summary) continue;
     const month = monthKey(new Date(run.runAt));
-    const prev = grouped.get(month) ?? { ibs: 0, cbs: 0, rateAcc: 0, rateCount: 0, simulations: 0 };
+    const prev = grouped.get(month) ?? { ibs: 0, cbs: 0, is: 0, rateAcc: 0, rateCount: 0, simulations: 0 };
     prev.ibs += toNumber(run.summary.ibsTotal);
     prev.cbs += toNumber(run.summary.cbsTotal);
+    prev.is += toNumber(run.summary.isTotal);
     prev.rateAcc += toNumber(run.summary.effectiveRate);
     prev.rateCount += 1;
     prev.simulations += 1;
@@ -68,8 +71,8 @@ export function buildMonthlyRows(runs: RunLike[]): DashboardMonthlyRow[] {
       month,
       ibsTotal: Number(row.ibs.toFixed(2)),
       cbsTotal: Number(row.cbs.toFixed(2)),
+      isTotal: Number(row.is.toFixed(2)),
       effectiveRate: row.rateCount ? Number((row.rateAcc / row.rateCount).toFixed(6)) : 0,
       simulations: row.simulations
     }));
 }
-

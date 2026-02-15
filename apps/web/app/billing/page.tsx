@@ -31,9 +31,7 @@ export default async function BillingPage() {
           <CardDescription>{tenant?.name}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <p>
-            Uso em {monthRef}: {usage.used} simulações.
-          </p>
+          <p>Uso em {monthRef}: {usage.used} simulações.</p>
           <p>
             Limite do plano: {usage.limit === null ? "Ilimitado" : `${usage.limit} simulações/mês`} | Restante:{" "}
             {usage.remaining === null ? "Ilimitado" : usage.remaining}
@@ -52,11 +50,10 @@ export default async function BillingPage() {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>Estrutura prevista:</p>
           <p>- Criação de `Customer` por tenant.</p>
-          <p>- Checkout/session para upgrade FREE → PRO/ENTERPRISE.</p>
+          <p>- Checkout/session para upgrade FREE -&gt; PRO/ENTERPRISE.</p>
           <p>- Webhook para sincronizar plano no campo `Tenant.plan`.</p>
         </CardContent>
       </Card>
     </div>
   );
 }
-

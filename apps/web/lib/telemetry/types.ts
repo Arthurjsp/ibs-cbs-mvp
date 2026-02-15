@@ -6,7 +6,9 @@ export const telemetryEventTypeValues = [
   TelemetryEventType.CALCULATION_EXECUTED,
   TelemetryEventType.SCENARIO_APPLIED,
   TelemetryEventType.EXPORT_CSV,
-  TelemetryEventType.EXPORT_XLSX
+  TelemetryEventType.EXPORT_XLSX,
+  TelemetryEventType.ASSISTED_ASSESSMENT_IMPORTED,
+  TelemetryEventType.DIVERGENCE_JUSTIFIED
 ] as const;
 
 export const telemetryEventSchema = z.object({
@@ -16,4 +18,3 @@ export const telemetryEventSchema = z.object({
 });
 
 export type TelemetryEventInput = z.infer<typeof telemetryEventSchema>;
-

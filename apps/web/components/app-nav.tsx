@@ -5,6 +5,8 @@ const items = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/documents", label: "Documentos" },
   { href: "/documents/upload", label: "Upload XML" },
+  { href: "/assisted-assessment", label: "Apuração" },
+  { href: "/credits", label: "Créditos" },
   { href: "/scenarios", label: "Cenários" },
   { href: "/reports", label: "Relatórios" },
   { href: "/billing", label: "Billing" }

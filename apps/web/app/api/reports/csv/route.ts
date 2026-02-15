@@ -51,6 +51,7 @@ export async function GET(request: Request) {
       "scenario",
       "ibsTotal",
       "cbsTotal",
+      "isTotal",
       "creditTotal",
       "effectiveRate"
     ]
@@ -65,6 +66,7 @@ export async function GET(request: Request) {
       run.scenario?.name ?? "BASELINE",
       toPtBrNumber(Number(run.summary?.ibsTotal ?? 0), 2),
       toPtBrNumber(Number(run.summary?.cbsTotal ?? 0), 2),
+      toPtBrNumber(Number(run.summary?.isTotal ?? 0), 2),
       toPtBrNumber(Number(run.summary?.creditTotal ?? 0), 2),
       toPtBrNumber(Number(run.summary?.effectiveRate ?? 0), 6)
     ]);

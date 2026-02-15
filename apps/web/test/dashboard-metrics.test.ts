@@ -6,15 +6,15 @@ describe("dashboard metrics helpers", () => {
     const rows = buildMonthlyRows([
       {
         runAt: new Date("2026-02-05T00:00:00.000Z"),
-        summary: { ibsTotal: 100, cbsTotal: 50, effectiveRate: 0.2 }
+        summary: { ibsTotal: 100, cbsTotal: 50, isTotal: 10, effectiveRate: 0.2 }
       },
       {
         runAt: new Date("2026-02-10T00:00:00.000Z"),
-        summary: { ibsTotal: 50, cbsTotal: 20, effectiveRate: 0.3 }
+        summary: { ibsTotal: 50, cbsTotal: 20, isTotal: 5, effectiveRate: 0.3 }
       },
       {
         runAt: new Date("2026-01-10T00:00:00.000Z"),
-        summary: { ibsTotal: 10, cbsTotal: 5, effectiveRate: 0.1 }
+        summary: { ibsTotal: 10, cbsTotal: 5, isTotal: 1, effectiveRate: 0.1 }
       }
     ]);
 
@@ -23,6 +23,7 @@ describe("dashboard metrics helpers", () => {
         month: "2026-01",
         ibsTotal: 10,
         cbsTotal: 5,
+        isTotal: 1,
         effectiveRate: 0.1,
         simulations: 1
       },
@@ -30,6 +31,7 @@ describe("dashboard metrics helpers", () => {
         month: "2026-02",
         ibsTotal: 150,
         cbsTotal: 70,
+        isTotal: 15,
         effectiveRate: 0.25,
         simulations: 2
       }
@@ -47,4 +49,3 @@ describe("dashboard metrics helpers", () => {
     expect(calculateVariation(20, 0)).toEqual({ delta: 20, deltaPct: null });
   });
 });
-

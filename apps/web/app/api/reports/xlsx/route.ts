@@ -49,6 +49,7 @@ export async function GET(request: Request) {
     { header: "scenario", key: "scenario", width: 24 },
     { header: "ibsTotal", key: "ibsTotal", width: 16 },
     { header: "cbsTotal", key: "cbsTotal", width: 16 },
+    { header: "isTotal", key: "isTotal", width: 16 },
     { header: "creditTotal", key: "creditTotal", width: 16 },
     { header: "effectiveRate", key: "effectiveRate", width: 14 }
   ];
@@ -62,6 +63,7 @@ export async function GET(request: Request) {
       scenario: run.scenario?.name ?? "BASELINE",
       ibsTotal: Number(run.summary?.ibsTotal ?? 0),
       cbsTotal: Number(run.summary?.cbsTotal ?? 0),
+      isTotal: Number(run.summary?.isTotal ?? 0),
       creditTotal: Number(run.summary?.creditTotal ?? 0),
       effectiveRate: Number(run.summary?.effectiveRate ?? 0)
     });
@@ -79,13 +81,14 @@ export async function GET(request: Request) {
   sheet.views = [{ state: "frozen", ySplit: 1 }];
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
-    to: { row: 1, column: 9 }
+    to: { row: 1, column: 10 }
   };
 
   sheet.getColumn("runAt").numFmt = "yyyy-mm-dd hh:mm:ss";
   sheet.getColumn("documentIssueDate").numFmt = "yyyy-mm-dd hh:mm:ss";
   sheet.getColumn("ibsTotal").numFmt = '"R$" #,##0.00';
   sheet.getColumn("cbsTotal").numFmt = '"R$" #,##0.00';
+  sheet.getColumn("isTotal").numFmt = '"R$" #,##0.00';
   sheet.getColumn("creditTotal").numFmt = '"R$" #,##0.00';
   sheet.getColumn("effectiveRate").numFmt = "0.00%";
 

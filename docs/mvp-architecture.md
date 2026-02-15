@@ -62,3 +62,9 @@
 - Fila BullMQ já prevista, com fallback síncrono no dev.
 - Storage por interface (local em dev, adaptador S3 preparado).
 - Regras versionadas por vigência (`validFrom`, `validTo`) para evolução normativa.
+
+## Orientacao de negocio (Tax Transition OS)
+
+- O foco do produto e reduzir incerteza operacional e risco financeiro na transicao.
+- O MVP atual cobre simulacao de impacto, trilha de auditoria e cockpit executivo.
+- Itens de roadmap para capturar valor: tradutor ERP, radar de risco fiscal e pricing com elasticidade.

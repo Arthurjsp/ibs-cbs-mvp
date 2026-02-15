@@ -35,7 +35,7 @@ async function seedIbsRuleSet(tenantId: string) {
   const existingRuleSet = await prisma.taxRuleSet.findFirst({
     where: {
       tenantId,
-      name: "RuleSet Default IBS/CBS"
+      name: "RuleSet Default IBS/CBS/IS"
     }
   });
 
@@ -47,7 +47,7 @@ async function seedIbsRuleSet(tenantId: string) {
   const ruleSet = await prisma.taxRuleSet.create({
     data: {
       tenantId,
-      name: "RuleSet Default IBS/CBS",
+      name: "RuleSet Default IBS/CBS/IS",
       validFrom: new Date("2026-01-01"),
       status: RuleSetStatus.ACTIVE
     }
@@ -58,23 +58,31 @@ async function seedIbsRuleSet(tenantId: string) {
       {
         ruleSetId: ruleSet.id,
         priority: 100,
-        description: "Regra padrão",
+        description: "Regra padrao",
         whenJson: { op: "and", conditions: [] },
-        thenJson: { ibsRate: 0.17, cbsRate: 0.09, creditEligible: true, notes: "Alíquota padrão estimada" }
+        thenJson: {
+          ibsRate: 0.17,
+          cbsRate: 0.09,
+          isRate: 0.02,
+          taxBaseMultiplier: 1,
+          taxBaseReduction: 0,
+          creditEligible: true,
+          notes: "Aliquotas padrao estimadas"
+        }
       },
       {
         ruleSetId: ruleSet.id,
         priority: 10,
         description: "Categoria reduzida",
         whenJson: { op: "in", field: "category", value: ["REDUZIDA"] },
-        thenJson: { ibsRate: 0.1, cbsRate: 0.05, creditEligible: true, notes: "Regra de benefício reduzido" }
+        thenJson: { ibsRate: 0.1, cbsRate: 0.05, isRate: 0.01, creditEligible: true, notes: "Regra reduzida" }
       },
       {
         ruleSetId: ruleSet.id,
         priority: 1,
         description: "Categoria isenta",
         whenJson: { op: "in", field: "category", value: ["ISENTA"] },
-        thenJson: { ibsRate: 0, cbsRate: 0, creditEligible: false, notes: "Item sem incidência no cenário" }
+        thenJson: { ibsRate: 0, cbsRate: 0, isRate: 0, creditEligible: false, notes: "Item sem incidencia" }
       }
     ]
   });
@@ -128,7 +136,7 @@ async function seedLegacyRuleSet(tenantId: string) {
 
 async function seedScenario(tenantId: string) {
   const existing = await prisma.scenario.findFirst({
-    where: { tenantId, name: "Cenário Base" }
+    where: { tenantId, name: "Cenario Base" }
   });
 
   if (existing) {
@@ -143,7 +151,7 @@ async function seedScenario(tenantId: string) {
   return prisma.scenario.create({
     data: {
       tenantId,
-      name: "Cenário Base",
+      name: "Cenario Base",
       parametersJson: { transitionFactor: 1, pricePassThroughPercent: 0 }
     }
   });
@@ -188,7 +196,7 @@ async function main() {
   await seedScenario(tenant.id);
 
   console.log(
-    `Seed concluído para tenant ${tenant.id}, company ${company.id}, ruleSet IBS ${ibsRuleSet.id} e ruleSet legado ${legacyRuleSet.id}`
+    `Seed concluido para tenant ${tenant.id}, company ${company.id}, ruleSet IBS ${ibsRuleSet.id} e ruleSet legado ${legacyRuleSet.id}`
   );
 }
 

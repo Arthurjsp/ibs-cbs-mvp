@@ -52,16 +52,20 @@ function toResultRow(result: any): RunResultRowView {
         taxBase: asNumber(components.ibs.taxBase),
         ibsRate: asNumber(components.ibs.ibsRate),
         cbsRate: asNumber(components.ibs.cbsRate),
+        isRate: asNumber(components.ibs.isRate),
         ibsValue: asNumber(components.ibs.ibsValue),
         cbsValue: asNumber(components.ibs.cbsValue),
+        isValue: asNumber(components.ibs.isValue),
         creditEligible: asBoolean(components.ibs.creditEligible)
       }
     : {
         taxBase: asNumber(result.taxBase),
         ibsRate: asNumber(result.ibsRate),
         cbsRate: asNumber(result.cbsRate),
+        isRate: asNumber(result.isRate),
         ibsValue: asNumber(result.ibsValue),
         cbsValue: asNumber(result.cbsValue),
+        isValue: asNumber(result.isValue),
         creditEligible: asBoolean(result.creditEligible)
       };
 
@@ -78,11 +82,14 @@ function toResultRow(result: any): RunResultRowView {
     : {
         taxBase: asNumber(result.taxBase),
         legacyTax: 0,
-        ibsTax: asNumber(result.ibsValue) + asNumber(result.cbsValue),
+        ibsTax: asNumber(result.ibsValue) + asNumber(result.cbsValue) + asNumber(result.isValue),
         weightedLegacyTax: 0,
-        weightedIbsTax: asNumber(result.ibsValue) + asNumber(result.cbsValue),
-        totalTax: asNumber(result.ibsValue) + asNumber(result.cbsValue),
-        effectiveRate: asNumber(result.taxBase) > 0 ? (asNumber(result.ibsValue) + asNumber(result.cbsValue)) / asNumber(result.taxBase) : 0
+        weightedIbsTax: asNumber(result.ibsValue) + asNumber(result.cbsValue) + asNumber(result.isValue),
+        totalTax: asNumber(result.ibsValue) + asNumber(result.cbsValue) + asNumber(result.isValue),
+        effectiveRate:
+          asNumber(result.taxBase) > 0
+            ? (asNumber(result.ibsValue) + asNumber(result.cbsValue) + asNumber(result.isValue)) / asNumber(result.taxBase)
+            : 0
       };
 
   const weights = components?.weights
@@ -127,7 +134,8 @@ function toSummaryView(summary: any): RunSummaryView {
 
   const ibsTotal = asNumber(summary.ibsTotal);
   const cbsTotal = asNumber(summary.cbsTotal);
-  const total = ibsTotal + cbsTotal;
+  const isTotal = asNumber(summary.isTotal);
+  const total = ibsTotal + cbsTotal + isTotal;
   return {
     legacyTaxTotal: 0,
     ibsTaxTotal: total,
@@ -299,7 +307,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                 <p className="font-medium">{new Date(run.runAt).toLocaleString("pt-BR")}</p>
                 <p className="text-muted-foreground">
                   Cenário: {run.scenario?.name ?? "Baseline"} | IBS R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)} | CBS
-                  R$ {Number(run.summary?.cbsTotal ?? 0).toFixed(2)}
+                  R$ {Number(run.summary?.cbsTotal ?? 0).toFixed(2)} | IS R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}
                 </p>
               </div>
               <a href={`/documents/${params.id}?runId=${run.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -317,9 +325,10 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <CardTitle>Resumo do run selecionado</CardTitle>
               <CardDescription>Run ID {selectedRun.id}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-5">
+            <CardContent className="grid gap-3 md:grid-cols-6">
               <p>IBS Total: R$ {Number(selectedRun.summary?.ibsTotal ?? 0).toFixed(2)}</p>
               <p>CBS Total: R$ {Number(selectedRun.summary?.cbsTotal ?? 0).toFixed(2)}</p>
+              <p>IS Total: R$ {Number(selectedRun.summary?.isTotal ?? 0).toFixed(2)}</p>
               <p>Crédito: R$ {Number(selectedRun.summary?.creditTotal ?? 0).toFixed(2)}</p>
               <p>Effective Rate: {Number(selectedRun.summary?.effectiveRate ?? 0).toFixed(4)}</p>
               <p>Transição (Final): R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}</p>

@@ -1,4 +1,4 @@
-import { Prisma, RuleSetStatus } from "@prisma/client";
+import { Prisma, RuleSetStatus, TaxType } from "@prisma/client";
 import { CalcInput, LegacyICMSRateDTO, RuleCondition, RuleEffect, ScenarioParams } from "@mvp/shared";
 import { checkSimulationLimit, consumeSimulation } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
@@ -156,6 +156,16 @@ export async function runCalcForDocument(params: {
     legacyRates
   });
   const now = new Date();
+  const creditByTax = output.ibs.itemResults.reduce(
+    (acc, item) => {
+      if (!item.creditEligible) return acc;
+      acc.ibs += item.ibsValue;
+      acc.cbs += item.cbsValue;
+      acc.is += item.isValue;
+      return acc;
+    },
+    { ibs: 0, cbs: 0, is: 0 }
+  );
 
   const calcRun = await prisma.$transaction(async (tx) => {
     const run = await tx.calcRun.create({
@@ -181,8 +191,10 @@ export async function runCalcForDocument(params: {
           documentItemId: itemResult.ibs.documentItemId,
           ibsRate: itemResult.ibs.ibsRate,
           cbsRate: itemResult.ibs.cbsRate,
+          isRate: itemResult.ibs.isRate,
           ibsValue: itemResult.ibs.ibsValue,
           cbsValue: itemResult.ibs.cbsValue,
+          isValue: itemResult.ibs.isValue,
           taxBase: itemResult.ibs.taxBase,
           creditEligible: itemResult.ibs.creditEligible,
           auditJson: {
@@ -195,7 +207,7 @@ export async function runCalcForDocument(params: {
                 audit: itemResult.legacy.audit
               },
               ibs: {
-                totalTax: itemResult.ibs.ibsValue + itemResult.ibs.cbsValue,
+                totalTax: itemResult.ibs.ibsValue + itemResult.ibs.cbsValue + itemResult.ibs.isValue,
                 creditEligible: itemResult.ibs.creditEligible,
                 audit: itemResult.ibs.audit
               }
@@ -212,6 +224,7 @@ export async function runCalcForDocument(params: {
         calcRunId: run.id,
         ibsTotal: output.ibs.summary.ibsTotal,
         cbsTotal: output.ibs.summary.cbsTotal,
+        isTotal: output.ibs.summary.isTotal,
         creditTotal: output.ibs.summary.creditTotal,
         effectiveRate: output.summary.transition.effectiveRate,
         auditJson: {
@@ -225,6 +238,44 @@ export async function runCalcForDocument(params: {
         componentsJson: output.summary as unknown as Prisma.InputJsonValue
       }
     });
+
+    const ledgerRows = [
+      { taxType: TaxType.IBS, amount: creditByTax.ibs },
+      { taxType: TaxType.CBS, amount: creditByTax.cbs },
+      { taxType: TaxType.IS, amount: creditByTax.is }
+    ].filter((row) => row.amount > 0);
+
+    for (const row of ledgerRows) {
+      const ledger = await tx.taxCreditLedger.create({
+        data: {
+          tenantId: params.tenantId,
+          calcRunId: run.id,
+          taxType: row.taxType,
+          amount: row.amount,
+          status: "PENDING_EXTINCTION",
+          extDebtRequired: true,
+          evidenceJson: {
+            source: "calc_run",
+            runAt: now.toISOString(),
+            calcRunId: run.id,
+            documentId: document.id
+          } as unknown as Prisma.InputJsonValue
+        }
+      });
+
+      await tx.taxCreditLedgerEvent.create({
+        data: {
+          ledgerId: ledger.id,
+          eventType: "ACCRUED",
+          amount: row.amount,
+          metadataJson: {
+            reason: "Credito gerado por simulacao elegivel",
+            calcRunId: run.id,
+            taxType: row.taxType
+          } as unknown as Prisma.InputJsonValue
+        }
+      });
+    }
 
     return run;
   });
@@ -240,7 +291,9 @@ export async function runCalcForDocument(params: {
       scenarioId: scenario?.id ?? null,
       ibsTotal: output.ibs.summary.ibsTotal,
       cbsTotal: output.ibs.summary.cbsTotal,
+      isTotal: output.ibs.summary.isTotal,
       finalTaxTotal: output.summary.transition.totalTax,
+      creditByTax,
       effectiveRate: output.summary.transition.effectiveRate,
       transitionWeights: output.weights
     } as unknown as Prisma.InputJsonValue

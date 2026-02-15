@@ -19,5 +19,13 @@ describe("telemetryEventSchema", () => {
 
     expect(result.success).toBe(false);
   });
-});
 
+  it("accepts assisted assessment events", () => {
+    const parsed = telemetryEventSchema.parse({
+      type: "ASSISTED_ASSESSMENT_IMPORTED",
+      payload: { month: "2026-02", divergenceCount: 3 }
+    });
+
+    expect(parsed.type).toBe("ASSISTED_ASSESSMENT_IMPORTED");
+  });
+});
