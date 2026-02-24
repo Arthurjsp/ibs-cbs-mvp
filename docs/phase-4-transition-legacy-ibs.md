@@ -39,6 +39,9 @@ Adicionar calculo legado (ICMS/ISS), orquestracao por ano de emissao e visao com
   - `2031`: 0.7 / 0.3
   - `2032`: 0.6 / 0.4
   - `>=2033`: 0.0 / 1.0
+- Guarda de confiabilidade:
+  - quando `wLegacy > 0`, o servico exige configuracao `LegacyUFConfig` valida para o par `emitterUf -> recipientUf`.
+  - sem config valida, o calculo falha com erro explicito em vez de estimar com baseline inconsistente.
 
 4. UI em `/documents/[id]`
 - Aba `Legado (ICMS/ISS)` com colunas:

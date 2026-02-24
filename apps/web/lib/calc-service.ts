@@ -1,6 +1,7 @@
 import { Prisma, RuleSetStatus, TaxType } from "@prisma/client";
 import { CalcInput, LegacyICMSRateDTO, LegacyUfConfigDTO, RuleCondition, RuleEffect, ScenarioParams } from "@mvp/shared";
 import { checkSimulationLimit, consumeSimulation } from "@/lib/billing";
+import { hasLegacyUfConfigForDocument } from "@/lib/legacy/uf-config";
 import { prisma } from "@/lib/prisma";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { getTransitionWeights, orchestrateTransitionCalculation } from "@/lib/transition/orchestrator";
@@ -100,6 +101,19 @@ export async function runCalcForDocument(params: {
 
   if (!legacyRuleSet && transitionWeights.legacy > 0) {
     throw new Error("Nenhum LegacyRuleSet ACTIVE vigente para a data do documento.");
+  }
+  if (legacyRuleSet && transitionWeights.legacy > 0) {
+    const hasUfConfig = hasLegacyUfConfigForDocument({
+      configs: legacyRuleSet.ufConfigs,
+      emitterUf: document.emitterUf,
+      recipientUf: document.recipientUf,
+      issueDate: document.issueDate
+    });
+    if (!hasUfConfig) {
+      throw new Error(
+        `Sem configuração legado para UF ${document.emitterUf} -> ${document.recipientUf} na vigência do documento.`
+      );
+    }
   }
 
   const calcInput: CalcInput = {
@@ -317,6 +331,10 @@ export async function runCalcForDocument(params: {
       cbsTotal: output.ibs.summary.cbsTotal,
       isTotal: output.ibs.summary.isTotal,
       finalTaxTotal: output.summary.transition.totalTax,
+      legacyIcmsTotal: output.legacy.summary.icmsTotal,
+      legacyStTotal: output.legacy.summary.stTotal,
+      legacyDifalTotal: output.legacy.summary.difalTotal,
+      legacyUnsupportedItemCount: output.legacy.summary.unsupportedItemCount,
       creditByTax,
       effectiveRate: output.summary.transition.effectiveRate,
       transitionWeights: output.weights
