@@ -70,24 +70,25 @@ enum CreditLedgerEventType {
 }
 
 model Tenant {
-  id               String           @id @default(cuid())
-  name             String
-  plan             TenantPlan       @default(FREE)
-  createdAt        DateTime         @default(now())
-  users            User[]
-  companyProfiles  CompanyProfile[]
-  taxRuleSets      TaxRuleSet[]
-  productCatalog   ProductCatalog[]
-  documents        Document[]
-  calcRuns         CalcRun[]
-  scenarios        Scenario[]
-  legacyRuleSets   LegacyRuleSet[]
-  icmsRates        ICMSRate[]
-  billingUsageRows BillingUsage[]
-  telemetryEvents  TelemetryEvent[]
-  taxCreditLedgers TaxCreditLedger[]
+  id                String                       @id @default(cuid())
+  name              String
+  plan              TenantPlan                   @default(FREE)
+  createdAt         DateTime                     @default(now())
+  users             User[]
+  companyProfiles   CompanyProfile[]
+  taxRuleSets       TaxRuleSet[]
+  productCatalog    ProductCatalog[]
+  documents         Document[]
+  calcRuns          CalcRun[]
+  scenarios         Scenario[]
+  legacyRuleSets    LegacyRuleSet[]
+  icmsRates         ICMSRate[]
+  legacyUfConfigs   LegacyUFConfig[]
+  billingUsageRows  BillingUsage[]
+  telemetryEvents   TelemetryEvent[]
+  taxCreditLedgers  TaxCreditLedger[]
   assistedSnapshots AssistedAssessmentSnapshot[]
-  divergences      AssessmentDivergence[]
+  divergences       AssessmentDivergence[]
 }
 
 model User {
@@ -110,15 +111,15 @@ model User {
 }
 
 model CompanyProfile {
-  id         String     @id @default(cuid())
-  tenantId   String
-  legalName  String
-  cnpj       String?
-  uf         String
-  segment    String?
-  createdAt  DateTime   @default(now())
-  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  documents  Document[]
+  id        String     @id @default(cuid())
+  tenantId  String
+  legalName String
+  cnpj      String?
+  uf        String
+  segment   String?
+  createdAt DateTime   @default(now())
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents Document[]
 
   @@index([tenantId])
 }
@@ -152,26 +153,27 @@ model TaxRule {
 }
 
 model ProductCatalog {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   tenantId    String
   ncm         String
   category    String
   description String?
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, ncm])
 }
 
 model LegacyRuleSet {
-  id        String        @id @default(cuid())
+  id        String           @id @default(cuid())
   tenantId  String
   name      String
   validFrom DateTime
   validTo   DateTime?
-  status    RuleSetStatus @default(DRAFT)
-  createdAt DateTime      @default(now())
-  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  status    RuleSetStatus    @default(DRAFT)
+  createdAt DateTime         @default(now())
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   icmsRates ICMSRate[]
+  ufConfigs LegacyUFConfig[]
 
   @@index([tenantId, status, validFrom, validTo])
 }
@@ -194,6 +196,29 @@ model ICMSRate {
   @@index([legacyRuleSetId])
   @@index([tenantId, ncm])
   @@index([tenantId, category])
+}
+
+model LegacyUFConfig {
+  id              String        @id @default(cuid())
+  tenantId        String
+  legacyRuleSetId String
+  emitterUf       String
+  recipientUf     String
+  internalRate    Decimal       @db.Decimal(8, 6)
+  interstateRate  Decimal       @db.Decimal(8, 6)
+  stRate          Decimal       @default(0) @db.Decimal(8, 6)
+  stMva           Decimal       @default(0) @db.Decimal(8, 6)
+  difalEnabled    Boolean       @default(true)
+  stEnabled       Boolean       @default(false)
+  validFrom       DateTime
+  validTo         DateTime?
+  createdAt       DateTime      @default(now())
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  legacyRuleSet   LegacyRuleSet @relation(fields: [legacyRuleSetId], references: [id], onDelete: Cascade)
+
+  @@unique([legacyRuleSetId, emitterUf, recipientUf, validFrom])
+  @@index([tenantId, emitterUf, recipientUf, validFrom, validTo])
+  @@index([legacyRuleSetId])
 }
 
 model Document {
@@ -219,36 +244,36 @@ model Document {
 }
 
 model DocumentItem {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   documentId  String
   lineNumber  Int
   description String
   ncm         String
   cfop        String?
   category    String?
-  quantity    Decimal   @db.Decimal(16, 4)
-  unitValue   Decimal   @db.Decimal(16, 4)
-  totalValue  Decimal   @db.Decimal(16, 2)
-  createdAt   DateTime  @default(now())
-  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  quantity    Decimal          @db.Decimal(16, 4)
+  unitValue   Decimal          @db.Decimal(16, 4)
+  totalValue  Decimal          @db.Decimal(16, 2)
+  createdAt   DateTime         @default(now())
+  document    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   results     CalcItemResult[]
 
   @@index([documentId, lineNumber])
 }
 
 model CalcRun {
-  id             String          @id @default(cuid())
+  id             String            @id @default(cuid())
   tenantId       String
   documentId     String
   ruleSetId      String
   scenarioId     String?
   runAt          DateTime
   parametersJson Json
-  createdAt      DateTime        @default(now())
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  document       Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  ruleSet        TaxRuleSet      @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
-  scenario       Scenario?       @relation(fields: [scenarioId], references: [id], onDelete: SetNull)
+  createdAt      DateTime          @default(now())
+  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document       Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  ruleSet        TaxRuleSet        @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  scenario       Scenario?         @relation(fields: [scenarioId], references: [id], onDelete: SetNull)
   itemResults    CalcItemResult[]
   summary        CalcSummary?
   creditLedgers  TaxCreditLedger[]
@@ -278,45 +303,45 @@ model CalcItemResult {
 }
 
 model CalcSummary {
-  id            String   @id @default(cuid())
-  calcRunId     String   @unique
-  ibsTotal      Decimal  @db.Decimal(16, 2)
-  cbsTotal      Decimal  @db.Decimal(16, 2)
-  isTotal       Decimal  @default(0) @db.Decimal(16, 2)
-  creditTotal   Decimal  @db.Decimal(16, 2)
-  effectiveRate Decimal  @db.Decimal(8, 6)
-  auditJson     Json
+  id             String  @id @default(cuid())
+  calcRunId      String  @unique
+  ibsTotal       Decimal @db.Decimal(16, 2)
+  cbsTotal       Decimal @db.Decimal(16, 2)
+  isTotal        Decimal @default(0) @db.Decimal(16, 2)
+  creditTotal    Decimal @db.Decimal(16, 2)
+  effectiveRate  Decimal @db.Decimal(8, 6)
+  auditJson      Json
   componentsJson Json?
-  calcRun       CalcRun  @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
+  calcRun        CalcRun @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
 }
 
 model TaxCreditLedger {
-  id              String                  @id @default(cuid())
+  id              String                 @id @default(cuid())
   tenantId        String
   calcRunId       String
   taxType         TaxType
-  amount          Decimal                 @db.Decimal(16, 2)
-  status          CreditLedgerStatus      @default(PENDING_EXTINCTION)
-  extDebtRequired Boolean                 @default(true)
+  amount          Decimal                @db.Decimal(16, 2)
+  status          CreditLedgerStatus     @default(PENDING_EXTINCTION)
+  extDebtRequired Boolean                @default(true)
   evidenceJson    Json?
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  tenant          Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  calcRun         CalcRun                 @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  calcRun         CalcRun                @relation(fields: [calcRunId], references: [id], onDelete: Cascade)
   events          TaxCreditLedgerEvent[]
 
-  @@index([tenantId, taxType, status, createdAt])
   @@unique([calcRunId, taxType])
+  @@index([tenantId, taxType, status, createdAt])
 }
 
 model TaxCreditLedgerEvent {
-  id          String                @id @default(cuid())
-  ledgerId    String
-  eventType   CreditLedgerEventType
-  amount      Decimal?              @db.Decimal(16, 2)
+  id           String                @id @default(cuid())
+  ledgerId     String
+  eventType    CreditLedgerEventType
+  amount       Decimal?              @db.Decimal(16, 2)
   metadataJson Json?
-  createdAt   DateTime              @default(now())
-  ledger      TaxCreditLedger       @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime              @default(now())
+  ledger       TaxCreditLedger       @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
 
   @@index([ledgerId, createdAt])
 }
@@ -334,13 +359,13 @@ model Scenario {
 }
 
 model BillingUsage {
-  id           String   @id @default(cuid())
-  tenantId     String
-  monthRef     DateTime
-  simulationCount Int   @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  tenantId        String
+  monthRef        DateTime
+  simulationCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, monthRef])
 }
@@ -360,39 +385,39 @@ model TelemetryEvent {
 }
 
 model AssistedAssessmentSnapshot {
-  id         String                 @id @default(cuid())
-  tenantId   String
-  monthRef   DateTime
-  source     String                 @default("MANUAL")
-  importedAt DateTime               @default(now())
+  id          String                 @id @default(cuid())
+  tenantId    String
+  monthRef    DateTime
+  source      String                 @default("MANUAL")
+  importedAt  DateTime               @default(now())
   payloadJson Json
   summaryJson Json
-  createdAt  DateTime               @default(now())
-  tenant     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime               @default(now())
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   divergences AssessmentDivergence[]
 
   @@index([tenantId, monthRef, createdAt])
 }
 
 model AssessmentDivergence {
-  id             String            @id @default(cuid())
+  id             String                     @id @default(cuid())
   tenantId       String
   snapshotId     String
   monthRef       DateTime
   metric         String
-  simulatedValue Decimal           @db.Decimal(16, 4)
-  assistedValue  Decimal           @db.Decimal(16, 4)
-  deltaValue     Decimal           @db.Decimal(16, 4)
-  deltaPct       Decimal?          @db.Decimal(16, 6)
-  status         DivergenceStatus  @default(OPEN)
+  simulatedValue Decimal                    @db.Decimal(16, 4)
+  assistedValue  Decimal                    @db.Decimal(16, 4)
+  deltaValue     Decimal                    @db.Decimal(16, 4)
+  deltaPct       Decimal?                   @db.Decimal(16, 6)
+  status         DivergenceStatus           @default(OPEN)
   justification  String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  tenant         Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   snapshot       AssistedAssessmentSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId, monthRef, status, createdAt])
   @@unique([snapshotId, metric])
+  @@index([tenantId, monthRef, status, createdAt])
 }
 
 model Account {

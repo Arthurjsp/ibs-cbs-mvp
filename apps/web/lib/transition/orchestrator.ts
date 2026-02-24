@@ -3,6 +3,7 @@ import { calculateLegacyDocument } from "@mvp/legacy-engine";
 import {
   CalcInput,
   LegacyICMSRateDTO,
+  LegacyUfConfigDTO,
   PersistedItemComponents,
   PersistedSummaryComponents,
   TransitionCalcOutput,
@@ -28,12 +29,14 @@ export function getTransitionWeights(issueDate: string | Date): TransitionWeight
 function composeItems(params: {
   ibsInput: CalcInput;
   legacyRates: LegacyICMSRateDTO[];
+  legacyUfConfigs: LegacyUfConfigDTO[];
   weights: TransitionWeights;
 }) {
   const legacy = calculateLegacyDocument({
     tenantId: params.ibsInput.tenantId,
     document: params.ibsInput.document,
-    rates: params.legacyRates
+    rates: params.legacyRates,
+    ufConfigs: params.legacyUfConfigs
   });
   const ibs = calculateDocument(params.ibsInput);
 
@@ -107,11 +110,13 @@ function composeSummary(params: {
 export function orchestrateTransitionCalculation(params: {
   ibsInput: CalcInput;
   legacyRates: LegacyICMSRateDTO[];
+  legacyUfConfigs: LegacyUfConfigDTO[];
 }): TransitionCalcOutput {
   const weights = getTransitionWeights(params.ibsInput.document.issueDate);
   const { items, legacy, ibs } = composeItems({
     ibsInput: params.ibsInput,
     legacyRates: params.legacyRates,
+    legacyUfConfigs: params.legacyUfConfigs,
     weights
   });
   const summary = composeSummary({

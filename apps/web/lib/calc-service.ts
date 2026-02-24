@@ -1,5 +1,5 @@
 import { Prisma, RuleSetStatus, TaxType } from "@prisma/client";
-import { CalcInput, LegacyICMSRateDTO, RuleCondition, RuleEffect, ScenarioParams } from "@mvp/shared";
+import { CalcInput, LegacyICMSRateDTO, LegacyUfConfigDTO, RuleCondition, RuleEffect, ScenarioParams } from "@mvp/shared";
 import { checkSimulationLimit, consumeSimulation } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
@@ -88,6 +88,12 @@ export async function runCalcForDocument(params: {
           validFrom: { lte: document.issueDate },
           OR: [{ validTo: null }, { validTo: { gte: document.issueDate } }]
         }
+      },
+      ufConfigs: {
+        where: {
+          validFrom: { lte: document.issueDate },
+          OR: [{ validTo: null }, { validTo: { gte: document.issueDate } }]
+        }
       }
     }
   });
@@ -150,10 +156,25 @@ export async function runCalcForDocument(params: {
       validFrom: toIsoDateString(rate.validFrom),
       validTo: rate.validTo ? toIsoDateString(rate.validTo) : null
     })) ?? [];
+  const legacyUfConfigs: LegacyUfConfigDTO[] =
+    legacyRuleSet?.ufConfigs.map((config) => ({
+      id: config.id,
+      emitterUf: config.emitterUf,
+      recipientUf: config.recipientUf,
+      internalRate: decimalToNumber(config.internalRate),
+      interstateRate: decimalToNumber(config.interstateRate),
+      stRate: decimalToNumber(config.stRate),
+      stMva: decimalToNumber(config.stMva),
+      difalEnabled: config.difalEnabled,
+      stEnabled: config.stEnabled,
+      validFrom: toIsoDateString(config.validFrom),
+      validTo: config.validTo ? toIsoDateString(config.validTo) : null
+    })) ?? [];
 
   const output = orchestrateTransitionCalculation({
     ibsInput: calcInput,
-    legacyRates
+    legacyRates,
+    legacyUfConfigs
   });
   const now = new Date();
   const creditByTax = output.ibs.itemResults.reduce(
@@ -201,6 +222,9 @@ export async function runCalcForDocument(params: {
             weights: itemResult.weights,
             engines: {
               legacy: {
+                icmsValue: itemResult.legacy.icmsValue,
+                stValue: itemResult.legacy.stValue,
+                difalValue: itemResult.legacy.difalValue,
                 totalTax: itemResult.legacy.totalTax,
                 unsupported: itemResult.legacy.unsupported,
                 unsupportedReasons: itemResult.legacy.unsupportedReasons,

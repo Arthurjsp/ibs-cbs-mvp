@@ -186,7 +186,8 @@ Detalhamento tecnico:
 
 ## Fase 4 - Transição ICMS/ISS -> IBS
 
-- Novo pacote `packages/legacy-engine` para cálculo legado (ICMS simplificado + ISS placeholder).
+- Novo pacote `packages/legacy-engine` para cálculo legado (ICMS próprio + ST básica + DIFAL simplificado + ISS placeholder).
+- Parametrização por UF via `LegacyUFConfig` (origem/destino, alíquotas e MVA).
 - Orquestrador de transição no cálculo de documento com ponderação por ano de emissão.
 - Persistência de componentes legado/IBS/final em:
   - `CalcItemResult.componentsJson`

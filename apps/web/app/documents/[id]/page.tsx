@@ -36,8 +36,14 @@ function toResultRow(result: any): RunResultRowView {
   const legacy = components?.legacy
     ? {
         taxBase: asNumber(components.legacy.taxBase),
+        stBase: asNumber(components.legacy.stBase),
         icmsRate: asNumber(components.legacy.icmsRate),
         icmsValue: asNumber(components.legacy.icmsValue),
+        stRate: asNumber(components.legacy.stRate),
+        stMva: asNumber(components.legacy.stMva),
+        stValue: asNumber(components.legacy.stValue),
+        difalRate: asNumber(components.legacy.difalRate),
+        difalValue: asNumber(components.legacy.difalValue),
         issValue: asNumber(components.legacy.issValue),
         totalTax: asNumber(components.legacy.totalTax),
         unsupported: asBoolean(components.legacy.unsupported),

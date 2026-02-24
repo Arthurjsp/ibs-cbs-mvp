@@ -157,20 +157,43 @@ export interface LegacyICMSRateDTO {
   validTo?: string | null;
 }
 
+export interface LegacyUfConfigDTO {
+  id: string;
+  emitterUf: string;
+  recipientUf: string;
+  internalRate: number;
+  interstateRate: number;
+  stRate: number;
+  stMva: number;
+  difalEnabled: boolean;
+  stEnabled: boolean;
+  validFrom: string;
+  validTo?: string | null;
+}
+
 export interface LegacyCalcInput {
   tenantId: string;
   document: DocumentDTO;
   rates: LegacyICMSRateDTO[];
+  ufConfigs: LegacyUfConfigDTO[];
 }
 
 export interface LegacyRateSelectionAudit {
   rateId?: string;
-  source: "NCM_CATEGORY" | "NCM" | "CATEGORY" | "UF_DEFAULT" | "NO_RATE";
+  source:
+    | "NCM_CATEGORY"
+    | "NCM"
+    | "CATEGORY"
+    | "UF_DEFAULT"
+    | "UF_CONFIG_INTERNAL"
+    | "UF_CONFIG_INTERSTATE"
+    | "NO_RATE";
   uf: string;
   rate: number;
 }
 
 export interface LegacyItemAudit {
+  ufConfigId?: string;
   rateSelection: LegacyRateSelectionAudit;
   unsupportedReasons: string[];
   notes: string[];
@@ -179,8 +202,14 @@ export interface LegacyItemAudit {
 export interface LegacyItemResult {
   documentItemId: string;
   taxBase: number;
+  stBase: number;
   icmsRate: number;
   icmsValue: number;
+  stRate: number;
+  stMva: number;
+  stValue: number;
+  difalRate: number;
+  difalValue: number;
   issRate: number;
   issValue: number;
   totalTax: number;
@@ -191,9 +220,13 @@ export interface LegacyItemResult {
 
 export interface LegacySummary {
   icmsTotal: number;
+  stTotal: number;
+  difalTotal: number;
   issTotal: number;
   totalTax: number;
   unsupportedItemCount: number;
+  stAppliedItemCount: number;
+  difalAppliedItemCount: number;
   itemCount: number;
   audit: {
     notes: string[];

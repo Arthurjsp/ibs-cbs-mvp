@@ -69,6 +69,21 @@ describe("transition orchestrator", () => {
           validFrom: "2026-01-01T00:00:00.000Z",
           validTo: null
         }
+      ],
+      legacyUfConfigs: [
+        {
+          id: "ufcfg-sp-pr",
+          emitterUf: "SP",
+          recipientUf: "PR",
+          internalRate: 0.1,
+          interstateRate: 0.1,
+          stRate: 0.18,
+          stMva: 0.4,
+          difalEnabled: false,
+          stEnabled: false,
+          validFrom: "2026-01-01T00:00:00.000Z",
+          validTo: null
+        }
       ]
     });
 
@@ -87,6 +102,21 @@ describe("transition orchestrator", () => {
           validFrom: "2026-01-01T00:00:00.000Z",
           validTo: null
         }
+      ],
+      legacyUfConfigs: [
+        {
+          id: "ufcfg-sp-pr",
+          emitterUf: "SP",
+          recipientUf: "PR",
+          internalRate: 0.1,
+          interstateRate: 0.1,
+          stRate: 0.18,
+          stMva: 0.4,
+          difalEnabled: false,
+          stEnabled: false,
+          validFrom: "2026-01-01T00:00:00.000Z",
+          validTo: null
+        }
       ]
     });
 
@@ -102,6 +132,21 @@ describe("transition orchestrator", () => {
           id: "legacy-pr",
           uf: "PR",
           rate: 0.1,
+          validFrom: "2026-01-01T00:00:00.000Z",
+          validTo: null
+        }
+      ],
+      legacyUfConfigs: [
+        {
+          id: "ufcfg-sp-pr",
+          emitterUf: "SP",
+          recipientUf: "PR",
+          internalRate: 0.1,
+          interstateRate: 0.1,
+          stRate: 0.18,
+          stMva: 0.4,
+          difalEnabled: false,
+          stEnabled: false,
           validFrom: "2026-01-01T00:00:00.000Z",
           validTo: null
         }

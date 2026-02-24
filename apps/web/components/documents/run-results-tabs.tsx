@@ -12,8 +12,14 @@ export interface RunResultRowView {
   ncm: string;
   legacy: {
     taxBase: number;
+    stBase: number;
     icmsRate: number;
     icmsValue: number;
+    stRate: number;
+    stMva: number;
+    stValue: number;
+    difalRate: number;
+    difalValue: number;
     issValue: number;
     totalTax: number;
     unsupported: boolean;
@@ -132,7 +138,9 @@ export function RunResultsTabs({ rows, summary }: Props) {
                 <TableHead>Descricao</TableHead>
                 <TableHead>NCM</TableHead>
                 <TableHead>Base</TableHead>
-                <TableHead>ICMS</TableHead>
+                <TableHead>ICMS proprio</TableHead>
+                <TableHead>DIFAL</TableHead>
+                <TableHead>ST basica</TableHead>
                 <TableHead>ISS</TableHead>
                 <TableHead>Total legado</TableHead>
                 <TableHead>Unsupported</TableHead>
@@ -148,6 +156,14 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   <TableCell>{toMoney(row.legacy?.taxBase)}</TableCell>
                   <TableCell>
                     {row.legacy ? `${toRate(row.legacy.icmsRate)} (${toMoney(row.legacy.icmsValue)})` : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {row.legacy ? `${toRate(row.legacy.difalRate)} (${toMoney(row.legacy.difalValue)})` : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {row.legacy
+                      ? `${toRate(row.legacy.stRate)} MVA ${toRate(row.legacy.stMva)} (${toMoney(row.legacy.stValue)})`
+                      : "-"}
                   </TableCell>
                   <TableCell>{toMoney(row.legacy?.issValue)}</TableCell>
                   <TableCell>{toMoney(row.legacy?.totalTax)}</TableCell>

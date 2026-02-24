@@ -94,7 +94,9 @@ async function seedLegacyRuleSet(tenantId: string) {
   const existing = await prisma.legacyRuleSet.findFirst({
     where: {
       tenantId,
-      name: "RuleSet Legado ICMS/ISS v1"
+      name: {
+        in: ["RuleSet Legado ICMS/ISS v1", "RuleSet Legado ICMS/ISS v2"]
+      }
     }
   });
 
@@ -106,7 +108,7 @@ async function seedLegacyRuleSet(tenantId: string) {
   const legacyRuleSet = await prisma.legacyRuleSet.create({
     data: {
       tenantId,
-      name: "RuleSet Legado ICMS/ISS v1",
+      name: "RuleSet Legado ICMS/ISS v2",
       validFrom: new Date("2026-01-01"),
       status: RuleSetStatus.ACTIVE
     }
@@ -126,6 +128,63 @@ async function seedLegacyRuleSet(tenantId: string) {
         legacyRuleSetId: legacyRuleSet.id,
         uf: "PR",
         rate: 0.18,
+        validFrom: new Date("2026-01-01")
+      }
+    ]
+  });
+
+  await prisma.legacyUFConfig.createMany({
+    data: [
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "SP",
+        recipientUf: "SP",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: false,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "PR",
+        recipientUf: "PR",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: false,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "SP",
+        recipientUf: "PR",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: true,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "PR",
+        recipientUf: "SP",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: true,
+        stEnabled: false,
         validFrom: new Date("2026-01-01")
       }
     ]
