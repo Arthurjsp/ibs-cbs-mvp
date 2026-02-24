@@ -4,6 +4,7 @@ import { DocumentType } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getXmlStorageAdapter } from "@/lib/storage";
+import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { MAX_NFE_XML_SIZE_BYTES } from "@/lib/xml/constants";
 import { NfeValidationError, parseNfeXml } from "@/lib/xml/nfe-parser";
@@ -25,6 +26,31 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) {
       return toUploadErrorResponse("Não autenticado.", [], 401);
+    }
+
+    const rateLimit = enforceRateLimit({
+      key: buildRateLimitKey({
+        request,
+        tenantId: session.user.tenantId,
+        userId: session.user.id,
+        route: "api:documents:upload"
+      }),
+      max: 8,
+      windowMs: 60_000
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Limite de upload atingido temporariamente.",
+          details: ["Tente novamente em instantes."]
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds)
+          }
+        }
+      );
     }
 
     const formData = await request.formData();

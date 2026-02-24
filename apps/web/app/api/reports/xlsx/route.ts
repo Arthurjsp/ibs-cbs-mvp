@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { monthRange } from "@/lib/utils";
 
@@ -12,6 +13,28 @@ export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const rateLimit = enforceRateLimit({
+    key: buildRateLimitKey({
+      request,
+      tenantId: session.user.tenantId,
+      userId: session.user.id,
+      route: "api:reports:xlsx"
+    }),
+    max: 20,
+    windowMs: 60_000
+  });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Limite de exportações XLSX excedido." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateLimit.retryAfterSeconds)
+        }
+      }
+    );
   }
 
   const { searchParams } = new URL(request.url);

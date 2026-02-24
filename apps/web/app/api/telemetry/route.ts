@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
+import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { telemetryEventSchema } from "@/lib/telemetry/types";
 
@@ -10,6 +11,28 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId || !session.user.id) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    }
+
+    const rateLimit = enforceRateLimit({
+      key: buildRateLimitKey({
+        request,
+        tenantId: session.user.tenantId,
+        userId: session.user.id,
+        route: "api:telemetry"
+      }),
+      max: 120,
+      windowMs: 60_000
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Limite de eventos de telemetria excedido." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds)
+          }
+        }
+      );
     }
 
     const body = await request.json();
@@ -29,4 +52,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
-
