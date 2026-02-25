@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -147,6 +147,7 @@ function AuditTrailCell({ audit, perspective }: { audit: unknown; perspective: "
 
 export function RunResultsTabs({ rows, summary }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("transition");
+  const tabsBaseId = useId();
 
   const tabTitle = useMemo(() => {
     if (activeTab === "legacy") return "Legado (ICMS/ISS)";
@@ -154,33 +155,50 @@ export function RunResultsTabs({ rows, summary }: Props) {
     return "Transicao (Final)";
   }, [activeTab]);
 
+  const tabPanelId = (key: TabKey) => `${tabsBaseId}-panel-${key}`;
+  const tabButtonId = (key: TabKey) => `${tabsBaseId}-tab-${key}`;
+
   return (
     <Card>
       <CardHeader className="space-y-3">
-        <CardTitle>Resultado por item + auditoria</CardTitle>
-        <div className="flex flex-wrap gap-2">
+        <CardTitle>Resultado por item e auditoria</CardTitle>
+
+        <div role="tablist" aria-label="Abas de resultado" className="flex flex-wrap gap-2">
           <button
+            id={tabButtonId("legacy")}
+            role="tab"
             type="button"
+            aria-controls={tabPanelId("legacy")}
+            aria-selected={activeTab === "legacy"}
             className={`rounded-md border px-3 py-1 text-sm ${activeTab === "legacy" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setActiveTab("legacy")}
           >
             Legado (ICMS/ISS)
           </button>
           <button
+            id={tabButtonId("ibs")}
+            role="tab"
             type="button"
+            aria-controls={tabPanelId("ibs")}
+            aria-selected={activeTab === "ibs"}
             className={`rounded-md border px-3 py-1 text-sm ${activeTab === "ibs" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setActiveTab("ibs")}
           >
             IBS/CBS/IS
           </button>
           <button
+            id={tabButtonId("transition")}
+            role="tab"
             type="button"
+            aria-controls={tabPanelId("transition")}
+            aria-selected={activeTab === "transition"}
             className={`rounded-md border px-3 py-1 text-sm ${activeTab === "transition" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setActiveTab("transition")}
           >
             Transicao (Final)
           </button>
         </div>
+
         <div className="text-sm text-muted-foreground">
           <p className="font-medium">{tabTitle}</p>
           <p>
@@ -193,9 +211,16 @@ export function RunResultsTabs({ rows, summary }: Props) {
           </p>
         </div>
       </CardHeader>
+
       <CardContent>
-        {activeTab === "legacy" ? (
+        <section
+          id={tabPanelId("legacy")}
+          role="tabpanel"
+          aria-labelledby={tabButtonId("legacy")}
+          hidden={activeTab !== "legacy"}
+        >
           <Table>
+            <caption className="sr-only">Tabela de calculo legado por item</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
@@ -218,12 +243,8 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   <TableCell>{row.description}</TableCell>
                   <TableCell>{row.ncm}</TableCell>
                   <TableCell>{toMoney(row.legacy?.taxBase)}</TableCell>
-                  <TableCell>
-                    {row.legacy ? `${toRate(row.legacy.icmsRate)} (${toMoney(row.legacy.icmsValue)})` : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {row.legacy ? `${toRate(row.legacy.difalRate)} (${toMoney(row.legacy.difalValue)})` : "-"}
-                  </TableCell>
+                  <TableCell>{row.legacy ? `${toRate(row.legacy.icmsRate)} (${toMoney(row.legacy.icmsValue)})` : "-"}</TableCell>
+                  <TableCell>{row.legacy ? `${toRate(row.legacy.difalRate)} (${toMoney(row.legacy.difalValue)})` : "-"}</TableCell>
                   <TableCell>
                     {row.legacy
                       ? `${toRate(row.legacy.stRate)} MVA ${toRate(row.legacy.stMva)} (${toMoney(row.legacy.stValue)})`
@@ -231,9 +252,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   </TableCell>
                   <TableCell>{toMoney(row.legacy?.issValue)}</TableCell>
                   <TableCell>{toMoney(row.legacy?.totalTax)}</TableCell>
-                  <TableCell>
-                    {row.legacy?.unsupported ? `Sim (${row.legacy.unsupportedReasons.join(", ") || "sem detalhe"})` : "Nao"}
-                  </TableCell>
+                  <TableCell>{row.legacy?.unsupported ? `Sim (${row.legacy.unsupportedReasons.join(", ") || "sem detalhe"})` : "Nao"}</TableCell>
                   <TableCell>
                     <AuditTrailCell audit={row.audit} perspective="legacy" />
                   </TableCell>
@@ -241,10 +260,11 @@ export function RunResultsTabs({ rows, summary }: Props) {
               ))}
             </TableBody>
           </Table>
-        ) : null}
+        </section>
 
-        {activeTab === "ibs" ? (
+        <section id={tabPanelId("ibs")} role="tabpanel" aria-labelledby={tabButtonId("ibs")} hidden={activeTab !== "ibs"}>
           <Table>
+            <caption className="sr-only">Tabela IBS/CBS/IS por item</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
@@ -276,10 +296,16 @@ export function RunResultsTabs({ rows, summary }: Props) {
               ))}
             </TableBody>
           </Table>
-        ) : null}
+        </section>
 
-        {activeTab === "transition" ? (
+        <section
+          id={tabPanelId("transition")}
+          role="tabpanel"
+          aria-labelledby={tabButtonId("transition")}
+          hidden={activeTab !== "transition"}
+        >
           <Table>
+            <caption className="sr-only">Tabela de transicao final por item</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
@@ -317,7 +343,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
               ))}
             </TableBody>
           </Table>
-        ) : null}
+        </section>
       </CardContent>
     </Card>
   );

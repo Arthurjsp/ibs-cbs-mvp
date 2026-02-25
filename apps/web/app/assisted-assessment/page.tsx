@@ -1,12 +1,8 @@
-import { revalidatePath } from "next/cache";
+﻿import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  getMonthlySimulatedTotals,
-  importAssistedAssessment,
-  justifyDivergence
-} from "@/lib/assisted-assessment";
+import { getMonthlySimulatedTotals, importAssistedAssessment, justifyDivergence } from "@/lib/assisted-assessment";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -95,6 +91,7 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
   async function justifyAction(formData: FormData) {
     "use server";
     const currentUser = await requireUser();
+
     const parsed = justifySchema.parse({
       divergenceId: String(formData.get("divergenceId") ?? ""),
       justification: String(formData.get("justification") ?? ""),
@@ -118,11 +115,11 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Apuracao assistida e divergencias</h1>
         <p className="text-sm text-muted-foreground">
-          Importe a previa mensal, reconcilie com o simulado e registre justificativas com evidencia.
+          Nesta tela voce compara previa assistida com simulado e registra justificativas com evidencia.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-5" aria-label="Indicadores do mes selecionado">
         <Card>
           <CardHeader>
             <CardDescription>Mes de referencia</CardDescription>
@@ -153,17 +150,15 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
             <CardTitle>{openCount}</CardTitle>
           </CardHeader>
         </Card>
-      </div>
+      </section>
 
       <Card>
         <CardHeader>
           <CardTitle>Importar previa assistida</CardTitle>
-          <CardDescription>
-            Informe os totais da previa para comparar com a simulacao e gerar divergencias por metrica.
-          </CardDescription>
+          <CardDescription>Informe os totais para comparar com o simulado e gerar divergencias por metrica.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={importAction} className="grid gap-4 md:grid-cols-3">
+          <form action={importAction} className="grid gap-4 md:grid-cols-3" noValidate>
             <div className="space-y-2">
               <Label htmlFor="month">Mes (YYYY-MM)</Label>
               <Input id="month" name="month" defaultValue={month} required />
@@ -206,6 +201,7 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
         </CardHeader>
         <CardContent>
           <Table>
+            <caption className="sr-only">Tabela de divergencias com valores simulados e assistidos</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
@@ -231,10 +227,14 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
                   <TableCell>{Number(divergence.deltaValue).toFixed(4)}</TableCell>
                   <TableCell>{divergence.status}</TableCell>
                   <TableCell>
-                    <form action={justifyAction} className="flex flex-wrap gap-2">
+                    <form action={justifyAction} className="flex flex-wrap gap-2" aria-label={`Justificar divergencia ${divergence.id}`}>
                       <input type="hidden" name="divergenceId" value={divergence.id} />
                       <input type="hidden" name="status" value="JUSTIFIED" />
+                      <Label htmlFor={`justification-${divergence.id}`} className="sr-only">
+                        Justificativa da divergencia
+                      </Label>
                       <Input
+                        id={`justification-${divergence.id}`}
                         name="justification"
                         defaultValue={divergence.justification ?? ""}
                         placeholder="Justificativa objetiva"

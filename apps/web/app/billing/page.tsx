@@ -1,4 +1,4 @@
-import { TelemetryEventType, TenantPlan } from "@prisma/client";
+﻿import { TelemetryEventType, TenantPlan } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { PLAN_LIMITS, checkSimulationLimit } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
@@ -23,6 +23,12 @@ function usageTone(usagePercent: number) {
   if (usagePercent >= 100) return "bg-destructive";
   if (usagePercent >= 80) return "bg-amber-500";
   return "bg-emerald-600";
+}
+
+function usageStatusText(usagePercent: number) {
+  if (usagePercent >= 100) return "Limite atingido";
+  if (usagePercent >= 80) return "Proximo do limite";
+  return "Dentro do limite";
 }
 
 export default async function BillingPage() {
@@ -53,9 +59,9 @@ export default async function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Billing e Consumo</h1>
+        <h1 className="text-2xl font-semibold">Billing e consumo</h1>
         <p className="text-sm text-muted-foreground">
-          Controle de limites por plano, status de uso mensal e caminho de upgrade.
+          Nesta tela voce decide quando mudar de plano, com base no uso real do mes.
         </p>
       </div>
 
@@ -70,21 +76,23 @@ export default async function BillingPage() {
           <p>
             Uso em {monthLabel}: {usage.used} simulacao(oes) de {usage.limit === null ? "ilimitado" : usage.limit}.
           </p>
+
           {usage.limit !== null ? (
-            <div className="space-y-1">
-              <div className="h-2 rounded bg-muted">
+            <div className="space-y-1" aria-label="Barra de consumo mensal">
+              <div className="h-2 rounded bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={usagePercent}>
                 <div className={`h-2 rounded ${usageTone(usagePercent)}`} style={{ width: `${usagePercent}%` }} />
               </div>
               <p className="text-xs text-muted-foreground">
-                {usage.remaining} simulacao(oes) restantes no ciclo atual.
+                {usageStatusText(usagePercent)} | {usage.remaining} simulacao(oes) restantes no ciclo atual.
               </p>
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">Plano sem limite de simulacoes mensais.</p>
           )}
+
           {!usage.allowed ? (
-            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-              Limite mensal atingido. Faça upgrade para continuar calculando novos documentos.
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive" role="alert">
+              Limite mensal atingido. Faca upgrade para continuar calculando novos documentos.
             </div>
           ) : null}
         </CardContent>
@@ -93,7 +101,7 @@ export default async function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Planos disponiveis</CardTitle>
-          <CardDescription>Estrutura comercial do MVP com enforcement de limite ativo.</CardDescription>
+          <CardDescription>Estrutura comercial do MVP com bloqueio de limite ativo.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           {planOrder.map((plan) => {
@@ -121,28 +129,30 @@ export default async function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Uso operacional (ultimos 30 dias)</CardTitle>
-          <CardDescription>Telemetria para apoiar decisao de upgrade e adocao do produto.</CardDescription>
+          <CardDescription>Metricas de adocao que ajudam a estimar necessidade de upgrade.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
-          <p>Uploads: {telemetryByType.get("DOCUMENT_UPLOADED") ?? 0}</p>
-          <p>Calculos: {telemetryByType.get("CALCULATION_EXECUTED") ?? 0}</p>
-          <p>Cenarios aplicados: {telemetryByType.get("SCENARIO_APPLIED") ?? 0}</p>
-          <p>Exports CSV: {telemetryByType.get("EXPORT_CSV") ?? 0}</p>
-          <p>Exports XLSX: {telemetryByType.get("EXPORT_XLSX") ?? 0}</p>
-          <p>Divergencias justificadas: {telemetryByType.get("DIVERGENCE_JUSTIFIED") ?? 0}</p>
+        <CardContent>
+          <ul className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
+            <li>Uploads: {telemetryByType.get("DOCUMENT_UPLOADED") ?? 0}</li>
+            <li>Calculos: {telemetryByType.get("CALCULATION_EXECUTED") ?? 0}</li>
+            <li>Cenarios aplicados: {telemetryByType.get("SCENARIO_APPLIED") ?? 0}</li>
+            <li>Exports CSV: {telemetryByType.get("EXPORT_CSV") ?? 0}</li>
+            <li>Exports XLSX: {telemetryByType.get("EXPORT_XLSX") ?? 0}</li>
+            <li>Divergencias justificadas: {telemetryByType.get("DIVERGENCE_JUSTIFIED") ?? 0}</li>
+          </ul>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>Stripe scaffold</CardTitle>
-          <CardDescription>Integracao comercial prevista e isolada do core tributario.</CardDescription>
+          <CardDescription>Estrutura pronta para cobranca, sem pagamento real no MVP atual.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>- Criacao de Customer por tenant.</p>
-          <p>- Checkout/session para upgrade FREE -&gt; PRO/ENTERPRISE.</p>
+          <p>- Checkout/session para upgrade FREE para PRO ou ENTERPRISE.</p>
           <p>- Webhook para sincronizar plano em `Tenant.plan`.</p>
-          <p>- Bloqueio automatico de calculo quando limite mensal for excedido.</p>
+          <p>- Bloqueio automatico de calculo ao exceder limite mensal.</p>
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,9 @@ export default async function DocumentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Documentos</h1>
-          <p className="text-sm text-muted-foreground">Notas importadas para cálculo IBS/CBS estimado.</p>
+          <p className="text-sm text-muted-foreground">
+            Aqui voce escolhe qual NF-e analisar. Cada documento pode ter varios runs de simulacao.
+          </p>
         </div>
         <Link href="/documents/upload" className={buttonVariants()}>
           Upload XML
@@ -34,14 +36,15 @@ export default async function DocumentsPage() {
         </CardHeader>
         <CardContent>
           <Table>
+            <caption className="sr-only">Tabela de documentos importados com itens e quantidade de runs</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Chave</TableHead>
-                <TableHead>Emissão</TableHead>
+                <TableHead>Emissao</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Itens</TableHead>
                 <TableHead>Runs</TableHead>
-                <TableHead>Ação</TableHead>
+                <TableHead>Acao</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -19,16 +19,20 @@ export default function SignInPage() {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
     const result = await signIn("credentials", {
       email,
       callbackUrl,
       redirect: false
     });
+
     setLoading(false);
+
     if (result?.error) {
-      setError("Credenciais inválidas. Rode o seed e use admin@demo.local.");
+      setError("Credenciais invalidas. Rode o seed e use admin@demo.local.");
       return;
     }
+
     window.location.href = result?.url ?? callbackUrl;
   }
 
@@ -37,21 +41,32 @@ export default function SignInPage() {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Entrar</CardTitle>
-          <CardDescription>Acesso ao simulador IBS/CBS (MVP estimativo).</CardDescription>
+          <CardDescription>
+            Acesse o simulador IBS/CBS. Esta plataforma entrega estimativas para decisao gerencial.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={onSubmit}>
+          <form className="space-y-4" onSubmit={onSubmit} noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email corporativo</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="seu-email@empresa.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                aria-describedby="signin-email-help"
               />
+              <p id="signin-email-help" className="text-xs text-muted-foreground">
+                Use o email cadastrado para seu tenant.
+              </p>
             </div>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-sm text-destructive" role="alert" aria-live="assertive">
+                {error}
+              </p>
+            ) : null}
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>

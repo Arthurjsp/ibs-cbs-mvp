@@ -1,4 +1,5 @@
-﻿import { revalidatePath } from "next/cache";
+﻿import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { runCalcForDocument } from "@/lib/calc-service";
@@ -165,6 +166,7 @@ function toSummaryView(summary: any): RunSummaryView {
   const cbsTotal = asNumber(summary.cbsTotal);
   const isTotal = asNumber(summary.isTotal);
   const total = ibsTotal + cbsTotal + isTotal;
+
   return {
     legacyTaxTotal: 0,
     ibsTaxTotal: total,
@@ -231,7 +233,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
       revalidatePath(`/documents/${params.id}`);
       targetUrl = `/documents/${params.id}?runId=${result.calcRunId}`;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Falha ao executar cálculo.";
+      const message = error instanceof Error ? error.message : "Falha ao executar calculo.";
       targetUrl = `/documents/${params.id}?error=${encodeURIComponent(message)}`;
     }
     redirect(targetUrl);
@@ -262,6 +264,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
   const effectiveRateLegend = selectedRun?.summary
     ? buildEffectiveRateMessage(Number(selectedRun.summary.effectiveRate), Number(document.totalValue))
     : null;
+
   const runRows = selectedRun ? selectedRun.itemResults.map((result) => toResultRow(result)) : [];
   const runSummary = selectedRun?.summary ? toSummaryView(selectedRun.summary) : null;
   const runConfidence = selectedRun ? buildRunConfidence(runRows.map((row) => ({ audit: row.audit }))) : null;
@@ -273,8 +276,10 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
         <div>
           <h1 className="text-2xl font-semibold">Documento {document.key}</h1>
           <p className="text-sm text-muted-foreground">
-            Emissão {new Date(document.issueDate).toLocaleDateString("pt-BR")} | UF {document.emitterUf} -&gt;{" "}
-            {document.recipientUf}
+            Emissao {new Date(document.issueDate).toLocaleDateString("pt-BR")} | UF {document.emitterUf} -&gt; {document.recipientUf}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Nesta tela voce decide qual cenario aplicar e revisa a trilha de auditoria do calculo.
           </p>
         </div>
         <Badge variant="secondary">{document.type}</Badge>
@@ -284,43 +289,49 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
 
       {searchParams?.queued ? (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">
-            Cálculo enfileirado no BullMQ. Configure worker para processamento assíncrono.
+          <CardContent className="pt-6 text-sm text-muted-foreground" role="status" aria-live="polite">
+            Calculo enfileirado no BullMQ. Configure o worker para processamento assincrono.
           </CardContent>
         </Card>
       ) : null}
+
       {searchParams?.error ? (
         <Card>
-          <CardContent className="pt-6 text-sm text-destructive">{searchParams.error}</CardContent>
+          <CardContent className="pt-6 text-sm text-destructive" role="alert" aria-live="assertive">
+            {searchParams.error}
+          </CardContent>
         </Card>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Executar cálculo estimado IBS/CBS</CardTitle>
-          <CardDescription>
-            Seleciona RuleSet ACTIVE vigente por data de emissão e aplica cenário opcional.
-          </CardDescription>
+          <CardTitle>Executar calculo estimado IBS/CBS/IS</CardTitle>
+          <CardDescription>Selecione o cenario e confirme a simulacao para gerar o run.</CardDescription>
         </CardHeader>
         <CardContent>
           <form id="calc-form" action={calculateAction} className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <label htmlFor="scenarioId" className="text-sm font-medium">
-                Cenário
+                Cenario
               </label>
               <select
                 id="scenarioId"
                 name="scenarioId"
                 className="h-10 min-w-[280px] rounded-md border bg-card px-3 text-sm"
+                aria-describedby="scenario-help"
               >
-                <option value="">Sem cenário (baseline)</option>
+                <option value="">Sem cenario (baseline)</option>
                 {scenarios.map((scenario) => (
                   <option key={scenario.id} value={scenario.id}>
                     {scenario.name}
                   </option>
                 ))}
               </select>
+              <p id="scenario-help" className="text-xs text-muted-foreground">
+                O baseline usa regras ativas sem parametros extras de simulacao.
+              </p>
             </div>
+
             <CalculateConfirmSubmit formId="calc-form" scenarioSelectId="scenarioId" />
           </form>
         </CardContent>
@@ -328,7 +339,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
 
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de runs</CardTitle>
+          <CardTitle>Historico de runs</CardTitle>
           <CardDescription>{runs.length} run(s) para este documento.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -337,13 +348,13 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <div>
                 <p className="font-medium">{new Date(run.runAt).toLocaleString("pt-BR")}</p>
                 <p className="text-muted-foreground">
-                  Cenário: {run.scenario?.name ?? "Baseline"} | IBS R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)} | CBS
-                  R$ {Number(run.summary?.cbsTotal ?? 0).toFixed(2)} | IS R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}
+                  Cenario: {run.scenario?.name ?? "Baseline"} | IBS R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)} | CBS R${" "}
+                  {Number(run.summary?.cbsTotal ?? 0).toFixed(2)} | IS R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}
                 </p>
               </div>
-              <a href={`/documents/${params.id}?runId=${run.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <Link href={`/documents/${params.id}?runId=${run.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                 Abrir
-              </a>
+              </Link>
             </div>
           ))}
         </CardContent>
@@ -356,13 +367,25 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <CardTitle>Resumo do run selecionado</CardTitle>
               <CardDescription>Run ID {selectedRun.id}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-6">
-              <p>IBS Total: R$ {Number(selectedRun.summary?.ibsTotal ?? 0).toFixed(2)}</p>
-              <p>CBS Total: R$ {Number(selectedRun.summary?.cbsTotal ?? 0).toFixed(2)}</p>
-              <p>IS Total: R$ {Number(selectedRun.summary?.isTotal ?? 0).toFixed(2)}</p>
-              <p>Crédito: R$ {Number(selectedRun.summary?.creditTotal ?? 0).toFixed(2)}</p>
-              <p>Effective Rate: {Number(selectedRun.summary?.effectiveRate ?? 0).toFixed(4)}</p>
-              <p>Transição (Final): R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}</p>
+            <CardContent className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+              <p>
+                <span className="font-medium">IBS Total:</span> R$ {Number(selectedRun.summary?.ibsTotal ?? 0).toFixed(2)}
+              </p>
+              <p>
+                <span className="font-medium">CBS Total:</span> R$ {Number(selectedRun.summary?.cbsTotal ?? 0).toFixed(2)}
+              </p>
+              <p>
+                <span className="font-medium">IS Total:</span> R$ {Number(selectedRun.summary?.isTotal ?? 0).toFixed(2)}
+              </p>
+              <p>
+                <span className="font-medium">Credito:</span> R$ {Number(selectedRun.summary?.creditTotal ?? 0).toFixed(2)}
+              </p>
+              <p>
+                <span className="font-medium">Effective Rate:</span> {Number(selectedRun.summary?.effectiveRate ?? 0).toFixed(4)}
+              </p>
+              <p>
+                <span className="font-medium">Transicao (Final):</span> R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}
+              </p>
             </CardContent>
           </Card>
 
@@ -385,10 +408,12 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                     <span>Confianca geral</span>
                     <span className="font-medium">{runConfidence.score.toFixed(1)} / 100</span>
                   </div>
-                  <div className="h-2 rounded bg-muted">
+                  <div className="h-2 rounded bg-muted" aria-hidden="true">
                     <div className={`h-2 rounded ${confidenceStyle.bar}`} style={{ width: `${runConfidence.score}%` }} />
                   </div>
+                  <p className="text-xs text-muted-foreground">0 a 59: baixa | 60 a 79: media | 80 a 100: alta.</p>
                 </div>
+
                 <div className="grid gap-2 md:grid-cols-3">
                   <p>Itens: {runConfidence.metrics.totalItems}</p>
                   <p>Unsupported: {runConfidence.metrics.unsupportedItems}</p>
@@ -397,6 +422,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                   <p>Aliquota legado rastreada: {runConfidence.metrics.itemsWithLegacyRateConfig}</p>
                   <p>Pesos de transicao: {runConfidence.metrics.itemsWithWeights}</p>
                 </div>
+
                 <div className="space-y-1 text-muted-foreground">
                   {runConfidence.highlights.map((line) => (
                     <p key={line}>- {line}</p>

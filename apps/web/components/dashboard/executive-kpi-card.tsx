@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight, HelpCircle, Minus } from "lucide-react";
+﻿import { ArrowDownRight, ArrowUpRight, HelpCircle, Minus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -13,16 +13,45 @@ interface VariationData {
 interface ExecutiveKpiCardProps {
   title: string;
   value: string;
-  meaning: string;
+  whatIsIt: string;
+  whyItMatters: string;
+  action: string;
   tooltipExample: string;
   mom: VariationData;
   yoy: VariationData;
 }
 
+function buildVariationText(data: VariationData) {
+  if (data.value === null || !Number.isFinite(data.value)) {
+    return {
+      directionLabel: "Sem base comparativa",
+      impactLabel: "Aguardando historico minimo para interpretar tendencia."
+    };
+  }
+
+  const isUp = data.value > 0;
+  const isDown = data.value < 0;
+  const positiveIsGood = data.positiveIsGood ?? false;
+
+  if (!isUp && !isDown) {
+    return {
+      directionLabel: "Estavel",
+      impactLabel: "Sem variacao material no periodo comparado."
+    };
+  }
+
+  const favorable = isUp ? positiveIsGood : !positiveIsGood;
+
+  return {
+    directionLabel: isUp ? "Subiu" : "Caiu",
+    impactLabel: favorable ? "Impacto favoravel no negocio." : "Impacto desfavoravel no negocio."
+  };
+}
+
 function renderVariation(data: VariationData) {
   if (data.value === null || !Number.isFinite(data.value)) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground" aria-live="polite">
         {data.label}: sem base comparativa
       </p>
     );
@@ -40,22 +69,27 @@ function renderVariation(data: VariationData) {
         ? "text-destructive"
         : "text-emerald-700"
       : "text-muted-foreground";
+
   const sign = data.value > 0 ? "+" : "";
   const formatted = data.asPercent ? `${sign}${data.value.toFixed(1)}%` : `${sign}${data.value.toFixed(2)}`;
-
   const Icon = isUp ? ArrowUpRight : isDown ? ArrowDownRight : Minus;
 
+  const { directionLabel, impactLabel } = buildVariationText(data);
+
   return (
-    <p className={cn("flex items-center gap-1 text-xs", tone)}>
-      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>
-        {data.label}: {formatted}
-      </span>
-    </p>
+    <div className="space-y-0.5 text-xs" aria-label={`${data.label}: ${formatted}. ${directionLabel}. ${impactLabel}`}>
+      <p className={cn("flex items-center gap-1", tone)}>
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        <span>
+          {data.label}: {formatted} ({directionLabel})
+        </span>
+      </p>
+      <p className="text-muted-foreground">{impactLabel}</p>
+    </div>
   );
 }
 
-export function ExecutiveKpiCard({ title, value, meaning, tooltipExample, mom, yoy }: ExecutiveKpiCardProps) {
+export function ExecutiveKpiCard({ title, value, whatIsIt, whyItMatters, action, tooltipExample, mom, yoy }: ExecutiveKpiCardProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -65,13 +99,13 @@ export function ExecutiveKpiCard({ title, value, meaning, tooltipExample, mom, y
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
-                aria-label={`Detalhes de ${title}`}
+                className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                aria-label={`Exemplo de impacto para ${title}`}
               >
-                <HelpCircle className="h-3.5 w-3.5" />
+                <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="max-w-xs text-sm leading-relaxed" align="start">
+            <PopoverContent className="max-w-xs border border-border bg-popover text-sm leading-relaxed" align="start" role="note">
               <p className="font-medium">Exemplo de impacto</p>
               <p className="mt-1 text-muted-foreground">{tooltipExample}</p>
             </PopoverContent>
@@ -80,7 +114,15 @@ export function ExecutiveKpiCard({ title, value, meaning, tooltipExample, mom, y
         <CardTitle className="text-2xl">{value}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <p className="text-xs text-muted-foreground">{meaning}</p>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">O que e:</span> {whatIsIt}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Por que importa:</span> {whyItMatters}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Acao sugerida:</span> {action}
+        </p>
         {renderVariation(mom)}
         {renderVariation(yoy)}
       </CardContent>

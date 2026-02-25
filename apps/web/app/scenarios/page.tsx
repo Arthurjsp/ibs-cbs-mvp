@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+﻿import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
@@ -25,6 +25,7 @@ function formatOptionalRate(value: number | null) {
 
 export default async function ScenariosPage() {
   const user = await requireUser();
+
   const [scenarios, runs] = await Promise.all([
     prisma.scenario.findMany({
       where: { tenantId: user.tenantId },
@@ -69,6 +70,7 @@ export default async function ScenariosPage() {
         : null
     }))
   });
+
   const rowById = new Map(labData.rows.map((row) => [row.scenarioId, row]));
 
   async function createScenario(formData: FormData) {
@@ -133,21 +135,23 @@ export default async function ScenariosPage() {
     "use server";
     const currentUser = await requireUser();
     const id = String(formData.get("id"));
+
     await prisma.scenario.deleteMany({
       where: {
         id,
         tenantId: currentUser.tenantId
       }
     });
+
     revalidatePath("/scenarios");
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Simulador Estrategico</h1>
+        <h1 className="text-2xl font-semibold">Simulador estrategico</h1>
         <p className="text-sm text-muted-foreground">
-          Compare cenarios para decidir repasse, transicao e impacto final em resultado.
+          Nesta tela voce decide qual combinacao de transicao e repasse protege melhor sua margem.
         </p>
       </div>
 
@@ -156,10 +160,10 @@ export default async function ScenariosPage() {
       <Card>
         <CardHeader>
           <CardTitle>Novo cenario</CardTitle>
-          <CardDescription>Use sliders para ajustar parametros e criar variacoes comparaveis com baseline.</CardDescription>
+          <CardDescription>Preencha os campos abaixo para criar uma variacao comparavel com baseline.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={createScenario} className="grid gap-4 md:grid-cols-3">
+          <form action={createScenario} className="grid gap-4 md:grid-cols-3" noValidate>
             <ScenarioFormFields />
             <div className="flex items-end md:col-span-3">
               <Button type="submit">Criar cenario</Button>
@@ -175,6 +179,7 @@ export default async function ScenariosPage() {
         </CardHeader>
         <CardContent>
           <Table>
+            <caption className="sr-only">Tabela de cenarios com parametros, ultimo run e acoes</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
@@ -188,6 +193,7 @@ export default async function ScenariosPage() {
               {scenarios.map((scenario) => {
                 const row = rowById.get(scenario.id);
                 const normalized = normalizeScenarioParams(scenario.parametersJson);
+
                 return (
                   <TableRow key={scenario.id}>
                     <TableCell>{scenario.name}</TableCell>

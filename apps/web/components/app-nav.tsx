@@ -9,24 +9,31 @@ const items = [
   { href: "/credits", label: "Créditos" },
   { href: "/scenarios", label: "Cenários" },
   { href: "/reports", label: "Relatórios" },
-  { href: "/billing", label: "Billing" }
+  { href: "/billing", label: "Planos" }
 ];
 
 export function AppNav({ pathname }: { pathname: string }) {
   return (
-    <nav className="flex flex-wrap gap-2">
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted",
-            pathname.startsWith(item.href) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-foreground"
-          )}
-        >
-          {item.label}
-        </Link>
-      ))}
+    <nav aria-label="Navegação principal do produto">
+      <ul className="flex flex-wrap gap-2">
+        {items.map((item) => {
+          const active = pathname.startsWith(item.href);
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted",
+                  active ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-foreground"
+                )}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }

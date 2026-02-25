@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+﻿import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
@@ -77,41 +77,63 @@ export default async function OnboardingPage() {
     <div className="mx-auto max-w-2xl space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Onboarding</CardTitle>
-          <CardDescription>Cadastre os dados da empresa e inicialize o RuleSet padrão do simulador.</CardDescription>
+          <CardTitle>Onboarding da empresa</CardTitle>
+          <CardDescription>
+            Preencha os dados basicos para ativar o tenant e criar o RuleSet inicial de simulacao.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={submit} className="grid gap-4 md:grid-cols-2">
+          <form action={submit} className="grid gap-4 md:grid-cols-2" noValidate>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="tenantName">Nome do tenant</Label>
-              <Input id="tenantName" name="tenantName" defaultValue={tenant?.name ?? ""} required />
+              <Input id="tenantName" name="tenantName" defaultValue={tenant?.name ?? ""} aria-describedby="tenant-name-help" required />
+              <p id="tenant-name-help" className="text-xs text-muted-foreground">
+                Nome interno da sua operacao no sistema.
+              </p>
             </div>
+
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="legalName">Razão social</Label>
-              <Input id="legalName" name="legalName" defaultValue={company?.legalName ?? ""} required />
+              <Label htmlFor="legalName">Razao social</Label>
+              <Input id="legalName" name="legalName" defaultValue={company?.legalName ?? ""} aria-describedby="legal-name-help" required />
+              <p id="legal-name-help" className="text-xs text-muted-foreground">
+                Nome juridico principal da empresa para vincular documentos.
+              </p>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="cnpj">CNPJ (opcional)</Label>
-              <Input id="cnpj" name="cnpj" defaultValue={company?.cnpj ?? ""} />
+              <Input id="cnpj" name="cnpj" defaultValue={company?.cnpj ?? ""} aria-describedby="cnpj-help" />
+              <p id="cnpj-help" className="text-xs text-muted-foreground">
+                Pode ficar vazio no MVP.
+              </p>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="uf">UF</Label>
-              <Input id="uf" name="uf" defaultValue={company?.uf ?? "SP"} maxLength={2} required />
+              <Input id="uf" name="uf" defaultValue={company?.uf ?? "SP"} maxLength={2} aria-describedby="uf-help" required />
+              <p id="uf-help" className="text-xs text-muted-foreground">
+                Informe a UF principal da operacao (2 letras).
+              </p>
             </div>
+
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="segment">Segmento</Label>
-              <Input id="segment" name="segment" defaultValue={company?.segment ?? ""} />
+              <Input id="segment" name="segment" defaultValue={company?.segment ?? ""} aria-describedby="segment-help" />
+              <p id="segment-help" className="text-xs text-muted-foreground">
+                Exemplo: industria, varejo, servicos B2B.
+              </p>
             </div>
+
             <div className="md:col-span-2">
               <Button type="submit">Salvar e continuar</Button>
             </div>
           </form>
         </CardContent>
       </Card>
+
       <p className="text-sm text-muted-foreground">
-        Aviso: este produto entrega estimativas para simulação estratégica e não substitui apuração oficial.
+        Aviso: este produto entrega estimativas para simulacao estrategica e nao substitui apuracao oficial.
       </p>
     </div>
   );
 }
-

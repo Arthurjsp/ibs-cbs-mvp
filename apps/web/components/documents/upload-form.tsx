@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -64,11 +64,11 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
   const localValidationError = useMemo(() => {
     if (!file) return null;
     const name = file.name.toLowerCase();
-    if (!name.endsWith(".xml")) return "O arquivo precisa ter extensão .xml.";
+    if (!name.endsWith(".xml")) return "O arquivo precisa ter extensao .xml.";
     if (file.size > MAX_NFE_XML_SIZE_BYTES) {
       return `O arquivo excede o limite de ${formatSize(MAX_NFE_XML_SIZE_BYTES)}.`;
     }
-    if (file.size === 0) return "O arquivo está vazio.";
+    if (file.size === 0) return "O arquivo esta vazio.";
     return null;
   }, [file]);
 
@@ -118,26 +118,26 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
       router.refresh();
     } catch {
       setLoading(false);
-      setError("Falha de conexão ao enviar o XML.");
-      setDetails(["Verifique sua conexão e tente novamente."]);
+      setError("Falha de conexao ao enviar o XML.");
+      setDetails(["Verifique sua conexao e tente novamente."]);
     }
   }
 
   return (
     <div className="space-y-5">
       <div className="rounded-md border bg-muted/40 p-4">
-        <p className="text-sm font-medium">Fluxo guiado de importação</p>
+        <p className="text-sm font-medium">Fluxo guiado de importacao</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Acompanhe as etapas abaixo para concluir o upload e seguir para o cálculo em poucos minutos.
+          Acompanhe as etapas abaixo para concluir o upload e seguir para o calculo em poucos minutos.
         </p>
-        <ol className="mt-3 space-y-2">
+        <ol className="mt-3 space-y-2" aria-label="Etapas de upload e validacao">
           {steps.map((step, index) => (
             <UploadStepRow key={step.id} step={step} index={index} />
           ))}
         </ol>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <div className="space-y-2">
           <Label htmlFor="company">Empresa</Label>
           <select
@@ -145,6 +145,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
             className="h-10 w-full rounded-md border bg-card px-3 text-sm"
             value={companyProfileId}
             onChange={(e) => setCompanyProfileId(e.target.value)}
+            aria-describedby="company-help"
           >
             {companies.map((company) => (
               <option key={company.id} value={company.id}>
@@ -152,7 +153,9 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
               </option>
             ))}
           </select>
-          <p className="text-xs text-muted-foreground">O documento será vinculado a esta empresa dentro do tenant ativo.</p>
+          <p id="company-help" className="text-xs text-muted-foreground">
+            O documento sera vinculado a esta empresa dentro do tenant ativo.
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -162,9 +165,10 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
             type="file"
             accept=".xml,text/xml,application/xml"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            aria-describedby="file-help"
             required
           />
-          <p className="text-xs text-muted-foreground">
+          <p id="file-help" className="text-xs text-muted-foreground">
             Limite: {formatSize(MAX_NFE_XML_SIZE_BYTES)}. Formato esperado: NF-e modelo 55 em XML (layout 4.00).
           </p>
           {file ? (
@@ -175,13 +179,13 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
         </div>
 
         {localValidationError ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-            <p className="font-medium text-destructive">Validação local: {localValidationError}</p>
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert" aria-live="assertive">
+            <p className="font-medium text-destructive">Validacao local: {localValidationError}</p>
           </div>
         ) : null}
 
         {error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert" aria-live="assertive">
             <p className="font-medium text-destructive">{error}</p>
             {details.length > 0 ? (
               <ul className="mt-2 list-disc pl-5 text-muted-foreground">

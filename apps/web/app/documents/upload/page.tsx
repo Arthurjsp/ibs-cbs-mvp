@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,7 @@ export default async function UploadDocumentPage() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>CompanyProfile não encontrado</CardTitle>
+          <CardTitle>CompanyProfile nao encontrado</CardTitle>
           <CardDescription>Finalize o onboarding para cadastrar a empresa antes do upload.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -35,7 +35,7 @@ export default async function UploadDocumentPage() {
         <CardHeader>
           <CardTitle>Upload XML NF-e</CardTitle>
           <CardDescription>
-            Importe o XML para normalizar itens, NCM e valores no tenant atual e seguir para o cálculo com trilha de auditoria.
+            Nesta tela voce decide qual NF-e importar para iniciar o calculo com trilha de auditoria.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,24 +46,24 @@ export default async function UploadDocumentPage() {
       <div className="grid max-w-4xl gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>O que acontece após o upload</CardTitle>
+            <CardTitle>O que acontece apos o upload</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm text-muted-foreground">
-            <p>1) O documento e os itens são persistidos no tenant.</p>
-            <p>2) O XML bruto é armazenado para rastreabilidade.</p>
-            <p>3) Você é direcionado para a tela de cálculo do documento.</p>
+            <p>1) O documento e os itens sao salvos no tenant.</p>
+            <p>2) O XML bruto fica armazenado para rastreabilidade.</p>
+            <p>3) Voce segue para a tela de calculo do documento.</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Checklist de validação</CardTitle>
+            <CardTitle>Checklist de validacao</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm text-muted-foreground">
             <p>- Arquivo XML NF-e modelo 55 (layout 4.00).</p>
             <p>- Bloco `infNFe` e ao menos um item `det/prod`.</p>
-            <p>- UF emitente/destinatário e data de emissão preenchidas.</p>
-            <p>- Chave ainda não importada no mesmo tenant.</p>
+            <p>- UF emitente/destinatario e data de emissao preenchidas.</p>
+            <p>- Chave ainda nao importada no mesmo tenant.</p>
           </CardContent>
         </Card>
       </div>

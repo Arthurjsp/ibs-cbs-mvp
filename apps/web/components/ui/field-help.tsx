@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useId, useState } from "react";
 import { HelpCircle } from "lucide-react";
@@ -53,6 +53,7 @@ export function FieldHelp({
               setOpenReason(null);
               return;
             }
+
             if (!openReason) {
               setOpenReason("click");
             }
@@ -63,7 +64,9 @@ export function FieldHelp({
               type="button"
               aria-label={triggerLabel}
               aria-describedby={open ? tooltipId : undefined}
-              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
+              aria-expanded={open}
+              aria-controls={tooltipId}
+              className="inline-flex h-5 w-5 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               onMouseEnter={() => {
                 if (!supportsHover) return;
                 if (openReason === "click") return;
@@ -86,7 +89,7 @@ export function FieldHelp({
             role="note"
             side="top"
             align="start"
-            className="max-w-xs text-sm leading-relaxed"
+            className="max-w-xs border border-border bg-popover text-sm leading-relaxed"
             onMouseEnter={() => {
               if (!supportsHover) return;
               if (openReason === "hover") setOpen(true);

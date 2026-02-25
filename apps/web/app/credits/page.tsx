@@ -1,4 +1,4 @@
-import { CreditLedgerStatus, TaxType } from "@prisma/client";
+﻿import { CreditLedgerStatus, TaxType } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ function toNumber(value: { toNumber(): number } | number) {
 
 export default async function CreditsPage() {
   const user = await requireUser();
+
   const [rows, totalsByTax, totalsByStatus] = await Promise.all([
     prisma.taxCreditLedger.findMany({
       where: { tenantId: user.tenantId },
@@ -52,23 +53,19 @@ export default async function CreditsPage() {
     })
   ]);
 
-  const sumByTax = new Map<TaxType, number>(
-    totalsByTax.map((row) => [row.taxType, toNumber(row._sum.amount ?? 0)])
-  );
-  const sumByStatus = new Map<CreditLedgerStatus, number>(
-    totalsByStatus.map((row) => [row.status, toNumber(row._sum.amount ?? 0)])
-  );
+  const sumByTax = new Map<TaxType, number>(totalsByTax.map((row) => [row.taxType, toNumber(row._sum.amount ?? 0)]));
+  const sumByStatus = new Map<CreditLedgerStatus, number>(totalsByStatus.map((row) => [row.status, toNumber(row._sum.amount ?? 0)]));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Gestao de creditos IBS/CBS/IS</h1>
         <p className="text-sm text-muted-foreground">
-          Ledger de credito com trilha de evidencia por simulacao e status de extincao do debito.
+          Nesta tela voce acompanha quanto credito foi gerado, liberado, consumido ou bloqueado.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3" aria-label="Totais por tipo de tributo">
         <Card>
           <CardHeader>
             <CardDescription>Total IBS</CardDescription>
@@ -87,9 +84,9 @@ export default async function CreditsPage() {
             <CardTitle>{toMoney(sumByTax.get("IS") ?? 0)}</CardTitle>
           </CardHeader>
         </Card>
-      </div>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-4" aria-label="Totais por status de credito">
         <Card>
           <CardHeader>
             <CardDescription>Pendente</CardDescription>
@@ -114,7 +111,7 @@ export default async function CreditsPage() {
             <CardTitle>{toMoney(sumByStatus.get("BLOCKED") ?? 0)}</CardTitle>
           </CardHeader>
         </Card>
-      </div>
+      </section>
 
       <Card>
         <CardHeader>
@@ -123,6 +120,7 @@ export default async function CreditsPage() {
         </CardHeader>
         <CardContent>
           <Table>
+            <caption className="sr-only">Tabela de creditos por documento com evento mais recente</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>

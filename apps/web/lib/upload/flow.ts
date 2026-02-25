@@ -1,4 +1,4 @@
-export type UploadStepStatus = "pending" | "current" | "completed" | "error";
+﻿export type UploadStepStatus = "pending" | "current" | "completed" | "error";
 
 export interface UploadFlowStep {
   id: string;
@@ -32,14 +32,14 @@ export function buildUploadFlowSteps(input: UploadFlowInput): UploadFlowStep[] {
     },
     {
       id: "validate",
-      title: "Validar conteúdo",
-      description: "Checa extensão, tamanho e estrutura mínima da NF-e.",
+      title: "Validar conteudo",
+      description: "Checa extensao, tamanho e estrutura minima da NF-e.",
       status: input.hasFile ? (input.localValidationError ? "error" : "completed") : "pending"
     },
     {
       id: "import",
       title: "Importar e revisar",
-      description: "Persistir documento, normalizar itens e seguir para cálculo.",
+      description: "Persistir documento, normalizar itens e seguir para calculo.",
       status: input.loading ? "current" : isValidFile ? "completed" : "pending"
     }
   ];

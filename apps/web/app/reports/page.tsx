@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+﻿import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   buildExecutiveInsights,
@@ -42,6 +42,12 @@ function insightTone(severity: "HIGH" | "MEDIUM" | "LOW") {
   if (severity === "HIGH") return "border-destructive/30 bg-destructive/5 text-destructive";
   if (severity === "MEDIUM") return "border-amber-300 bg-amber-50 text-amber-800";
   return "border-emerald-300 bg-emerald-50 text-emerald-800";
+}
+
+function severityLabel(severity: "HIGH" | "MEDIUM" | "LOW") {
+  if (severity === "HIGH") return "ALTO";
+  if (severity === "MEDIUM") return "MEDIO";
+  return "BAIXO";
 }
 
 export default async function ReportsPage({ searchParams }: Props) {
@@ -88,6 +94,7 @@ export default async function ReportsPage({ searchParams }: Props) {
       componentsJson: run.summary?.componentsJson ?? null
     }))
   });
+
   const summary = summarizeReportDataset(dataset);
   const insights = buildExecutiveInsights(dataset);
   const spotlight = buildExecutiveSpotlight(dataset, 3);
@@ -95,6 +102,7 @@ export default async function ReportsPage({ searchParams }: Props) {
   const csvHref = `/api/reports/csv?month=${encodeURIComponent(month)}${
     scenarioId ? `&scenarioId=${encodeURIComponent(scenarioId)}` : ""
   }&template=${encodeURIComponent(template)}`;
+
   const xlsxHref = `/api/reports/xlsx?month=${encodeURIComponent(month)}${
     scenarioId ? `&scenarioId=${encodeURIComponent(scenarioId)}` : ""
   }&template=${encodeURIComponent(template)}`;
@@ -107,7 +115,7 @@ export default async function ReportsPage({ searchParams }: Props) {
       <div>
         <h1 className="text-2xl font-semibold">Relatorios</h1>
         <p className="text-sm text-muted-foreground">
-          Exportacao gerencial e tecnica por periodo/cenario com pre-visualizacao antes do download.
+          Nesta tela voce decide o recorte de exportacao e valida os dados antes do download.
         </p>
       </div>
 
@@ -123,7 +131,7 @@ export default async function ReportsPage({ searchParams }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Filtros e template</CardTitle>
-          <CardDescription>Defina o recorte e o layout do relatorio antes de exportar.</CardDescription>
+          <CardDescription>Defina periodo, cenario e formato antes de exportar.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="flex flex-wrap items-end gap-3" method="GET">
@@ -137,8 +145,13 @@ export default async function ReportsPage({ searchParams }: Props) {
                 defaultValue={month}
                 className="h-10 rounded-md border bg-card px-3 text-sm"
                 placeholder="2026-01"
+                aria-describedby="month-help"
               />
+              <p id="month-help" className="text-xs text-muted-foreground">
+                Exemplo: 2026-02.
+              </p>
             </div>
+
             <div className="space-y-1">
               <label htmlFor="scenarioId" className="text-sm font-medium">
                 Cenario
@@ -157,6 +170,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                 ))}
               </select>
             </div>
+
             <div className="space-y-1">
               <label htmlFor="template" className="text-sm font-medium">
                 Template
@@ -166,6 +180,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                 <option value="TECHNICAL">Tecnico</option>
               </select>
             </div>
+
             <Button type="submit" variant="outline">
               Aplicar
             </Button>
@@ -179,7 +194,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-4" aria-label="Indicadores do recorte selecionado">
         <Card>
           <CardHeader>
             <CardDescription>Runs no filtro</CardDescription>
@@ -204,19 +219,19 @@ export default async function ReportsPage({ searchParams }: Props) {
             <CardTitle>{summary.unsupportedItems}</CardTitle>
           </CardHeader>
         </Card>
-      </div>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Resumo para diretoria</CardTitle>
-            <CardDescription>Leitura executiva do periodo com foco em risco e acao.</CardDescription>
+            <CardDescription>Cada alerta informa risco, contexto e acao recomendada.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {insights.map((insight) => (
               <div key={`${insight.severity}-${insight.title}`} className={`rounded-md border p-3 ${insightTone(insight.severity)}`}>
                 <p className="font-medium">
-                  {insight.severity} | {insight.title}
+                  {severityLabel(insight.severity)} | {insight.title}
                 </p>
                 <p className="mt-1">{insight.detail}</p>
               </div>
@@ -244,7 +259,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">Sem dados para destacar exposicao no recorte atual.</p>
+              <p className="text-muted-foreground">Sem dados para destaque no recorte atual.</p>
             )}
           </CardContent>
         </Card>
@@ -259,6 +274,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </CardHeader>
         <CardContent>
           <Table>
+            <caption className="sr-only">Pre-visualizacao dos dados que serao exportados</caption>
             <TableHeader>
               <TableRow>
                 {dataset.columns.map((column) => (
