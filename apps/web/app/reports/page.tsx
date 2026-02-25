@@ -46,7 +46,7 @@ function insightTone(severity: "HIGH" | "MEDIUM" | "LOW") {
 
 function severityLabel(severity: "HIGH" | "MEDIUM" | "LOW") {
   if (severity === "HIGH") return "ALTO";
-  if (severity === "MEDIUM") return "MEDIO";
+  if (severity === "MEDIUM") return "MÉDIO";
   return "BAIXO";
 }
 
@@ -137,9 +137,9 @@ export default async function ReportsPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">RelatÃ³rios</h1>
+        <h1 className="text-2xl font-semibold">Relatórios</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela vocÃª decide o recorte de exportaÃ§Ã£o e valida os dados antes do download.
+          Nesta tela você decide o recorte de exportação e valida os dados antes do download.
         </p>
       </div>
 
@@ -155,7 +155,7 @@ export default async function ReportsPage({ searchParams }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Filtros e template</CardTitle>
-          <CardDescription>Defina perÃ­odo, cenÃ¡rio e formato antes de exportar.</CardDescription>
+          <CardDescription>Defina período, cenário e formato antes de exportar.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" method="GET">
@@ -245,7 +245,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>CrÃ©dito total</CardDescription>
+            <CardDescription>Crédito total</CardDescription>
             <CardTitle>{currencyFormatter.format(summary.totalCredit)}</CardTitle>
           </CardHeader>
         </Card>
@@ -261,7 +261,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Resumo para diretoria</CardTitle>
-            <CardDescription>Cada alerta informa risco, contexto e aÃ§Ã£o recomendada.</CardDescription>
+            <CardDescription>Cada alerta informa risco, contexto e ação recomendada.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {insights.map((insight) => (
@@ -277,8 +277,8 @@ export default async function ReportsPage({ searchParams }: Props) {
 
         <Card>
           <CardHeader>
-          <CardTitle>Maior exposiÃ§Ã£o no perÃ­odo</CardTitle>
-            <CardDescription>Top documentos/cenÃ¡rios por tributo final estimado.</CardDescription>
+            <CardTitle>Maior exposição no período</CardTitle>
+            <CardDescription>Top documentos/cenários por tributo final estimado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {spotlight.length > 0 ? (
@@ -291,7 +291,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                     Tributo: {currencyFormatter.format(row.finalTax)} | Effective rate: {(row.effectiveRate * 100).toFixed(2)}% |
                     Unsupported: {row.unsupportedItems}
                   </p>
-                  <p className="text-muted-foreground">AÃ§Ã£o: {row.actionHint}</p>
+                  <p className="text-muted-foreground">Ação: {row.actionHint}</p>
                 </div>
               ))
             ) : (
@@ -303,14 +303,14 @@ export default async function ReportsPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pre-visualizaÃ§Ã£o ({template})</CardTitle>
+          <CardTitle>Pré-visualização ({template})</CardTitle>
           <CardDescription>
             Mostrando {previewRows.length} de {dataset.rows.length} linha(s). O export usa todas as linhas do filtro.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Pre-visualizaÃ§Ã£o dos dados que serÃ£o exportados</caption>
+            <caption className="sr-only">Pré-visualização dos dados que serão exportados</caption>
             <TableHeader>
               <TableRow>
                 {dataset.columns.map((column) => (
