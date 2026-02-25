@@ -10,6 +10,13 @@ interface StripePriceMap {
   ENTERPRISE: string | null;
 }
 
+const BILLABLE_STATUSES = new Set<Stripe.Subscription.Status>(["active", "trialing", "past_due", "incomplete", "unpaid"]);
+
+export function isBillableSubscriptionStatus(status: string | null | undefined) {
+  if (!status) return false;
+  return BILLABLE_STATUSES.has(status as Stripe.Subscription.Status);
+}
+
 function getStripePriceMap(): StripePriceMap {
   return {
     PRO: process.env.STRIPE_PRICE_PRO?.trim() || null,
@@ -147,6 +154,111 @@ async function findTenantForSubscription(subscription: Stripe.Subscription) {
   }
 
   return null;
+}
+
+function resolveReconcileState(subscription: Stripe.Subscription) {
+  return isBillableSubscriptionStatus(subscription.status) ? "synced_billable" : "synced_non_billable";
+}
+
+export async function reconcileTenantStripeState(tenantId: string) {
+  if (!isStripePortalConfigured()) {
+    return { updated: false as const, state: "stripe_not_configured" as const };
+  }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: {
+      id: true,
+      plan: true,
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+      stripeSubscriptionStatus: true
+    }
+  });
+
+  if (!tenant) {
+    return { updated: false as const, state: "tenant_not_found" as const };
+  }
+
+  const stripe = getStripeClient();
+
+  const applyFreeFallback = async (clearCustomerId = false) => {
+    const data: {
+      plan: TenantPlan;
+      stripeSubscriptionId: string | null;
+      stripePriceId: string | null;
+      stripeSubscriptionStatus: string | null;
+      stripeCurrentPeriodEnd: Date | null;
+      stripeCustomerId?: string | null;
+    } = {
+      plan: TenantPlan.FREE,
+      stripeSubscriptionId: null,
+      stripePriceId: null,
+      stripeSubscriptionStatus: null,
+      stripeCurrentPeriodEnd: null
+    };
+    if (clearCustomerId) data.stripeCustomerId = null;
+
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data
+    });
+
+    return { updated: true as const, state: "reset_to_free" as const };
+  };
+
+  // First, trust an explicit subscription id if present.
+  if (tenant.stripeSubscriptionId) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(tenant.stripeSubscriptionId);
+      await syncTenantFromSubscription(subscription);
+      return { updated: true as const, state: resolveReconcileState(subscription) };
+    } catch (error) {
+      const type = (error as { type?: string }).type;
+      const code = (error as { code?: string }).code;
+      const missingSubscription = type === "StripeInvalidRequestError" && code === "resource_missing";
+      if (!missingSubscription) throw error;
+    }
+  }
+
+  if (!tenant.stripeCustomerId) {
+    if (tenant.plan !== TenantPlan.FREE) {
+      return applyFreeFallback(false);
+    }
+    return { updated: false as const, state: "no_customer_no_change" as const };
+  }
+
+  // If subscription id is missing/stale, discover current state from Stripe by customer.
+  let subscriptions: Stripe.ApiList<Stripe.Subscription>;
+  try {
+    subscriptions = await stripe.subscriptions.list({
+      customer: tenant.stripeCustomerId,
+      status: "all",
+      limit: 20
+    });
+  } catch (error) {
+    const type = (error as { type?: string }).type;
+    const code = (error as { code?: string }).code;
+    const missingCustomer = type === "StripeInvalidRequestError" && code === "resource_missing";
+    if (missingCustomer) {
+      return applyFreeFallback(true);
+    }
+    throw error;
+  }
+
+  const ordered = [...subscriptions.data].sort((a, b) => b.created - a.created);
+  const billable = ordered.find((subscription) => isBillableSubscriptionStatus(subscription.status));
+  const selected = billable ?? ordered[0];
+
+  if (!selected) {
+    if (tenant.plan !== TenantPlan.FREE || tenant.stripeSubscriptionStatus || tenant.stripeSubscriptionId) {
+      return applyFreeFallback(false);
+    }
+    return { updated: false as const, state: "no_subscription_no_change" as const };
+  }
+
+  await syncTenantFromSubscription(selected);
+  return { updated: true as const, state: resolveReconcileState(selected) };
 }
 
 export async function syncTenantFromSubscription(subscription: Stripe.Subscription) {

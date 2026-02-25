@@ -1,8 +1,13 @@
-import { TelemetryEventType, TenantPlan } from "@prisma/client";
+﻿import { TelemetryEventType, TenantPlan } from "@prisma/client";
 import { requireRoles } from "@/lib/auth";
 import { PLAN_LIMITS, checkSimulationLimit } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
-import { isStripeConfigured, isStripePortalConfigured } from "@/lib/stripe-billing";
+import {
+  isBillableSubscriptionStatus,
+  isStripeConfigured,
+  isStripePortalConfigured,
+  reconcileTenantStripeState
+} from "@/lib/stripe-billing";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +51,46 @@ function subscriptionStatusLabel(status: string | null | undefined) {
   return map[status] ?? status;
 }
 
+function reconcileMessage(state: string | undefined, source: "manual" | "auto") {
+  if (!state) return null;
+
+  const prefix = source === "manual" ? "Sincronização concluída" : "Sincronização automática";
+  const map: Record<string, string> = {
+    synced_billable: `${prefix}: assinatura ativa localizada no Stripe.`,
+    synced_non_billable: `${prefix}: assinatura localizada com status não faturável.`,
+    reset_to_free: `${prefix}: não foi encontrada assinatura válida; plano ajustado para FREE.`,
+    no_customer_no_change: `${prefix}: tenant sem customer Stripe e sem alterações.`,
+    no_subscription_no_change: `${prefix}: nenhum ajuste necessário.`,
+    stripe_not_configured: `${prefix}: Stripe não configurado no ambiente.`,
+    tenant_not_found: `${prefix}: tenant não encontrado.`,
+    no_subscription_reset: `${prefix}: sem assinatura no Stripe; plano ajustado para FREE.`
+  };
+
+  return map[state] ?? `${prefix}: ${state}.`;
+}
+
+type TenantBillingState = {
+  name: string;
+  plan: TenantPlan;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  stripeSubscriptionStatus: string | null;
+  stripeCurrentPeriodEnd: Date | null;
+};
+
+function isTenantStripeInconsistent(tenant: TenantBillingState | null) {
+  if (!tenant) return false;
+
+  const isPaidPlan = tenant.plan !== "FREE";
+  const hasBillableStatus = isBillableSubscriptionStatus(tenant.stripeSubscriptionStatus);
+  const hasSubscriptionId = Boolean(tenant.stripeSubscriptionId);
+
+  if (isPaidPlan && (!hasSubscriptionId || !hasBillableStatus)) return true;
+  if (!isPaidPlan && hasSubscriptionId && hasBillableStatus) return true;
+
+  return false;
+}
+
 interface Props {
   searchParams?: Record<string, string | string[] | undefined>;
 }
@@ -57,18 +102,31 @@ export default async function BillingPage({ searchParams }: Props) {
   const stripeCheckoutReady = isStripeConfigured();
   const stripePortalReady = isStripePortalConfigured();
 
-  const [tenant, usage, telemetryCounts] = await Promise.all([
-    prisma.tenant.findUnique({
+  const tenantSelect = {
+    name: true,
+    plan: true,
+    stripeCustomerId: true,
+    stripeSubscriptionId: true,
+    stripeSubscriptionStatus: true,
+    stripeCurrentPeriodEnd: true
+  } as const;
+
+  let tenant = await prisma.tenant.findUnique({
+    where: { id: user.tenantId },
+    select: tenantSelect
+  });
+
+  let autoReconcileState: string | null = null;
+  if (stripePortalReady && isTenantStripeInconsistent(tenant)) {
+    const reconcileResult = await reconcileTenantStripeState(user.tenantId);
+    autoReconcileState = reconcileResult.state;
+    tenant = await prisma.tenant.findUnique({
       where: { id: user.tenantId },
-      select: {
-        name: true,
-        plan: true,
-        stripeCustomerId: true,
-        stripeSubscriptionId: true,
-        stripeSubscriptionStatus: true,
-        stripeCurrentPeriodEnd: true
-      }
-    }),
+      select: tenantSelect
+    });
+  }
+
+  const [usage, telemetryCounts] = await Promise.all([
     checkSimulationLimit(user.tenantId),
     prisma.telemetryEvent.groupBy({
       by: ["type"],
@@ -84,6 +142,8 @@ export default async function BillingPage({ searchParams }: Props) {
   const usagePercent = usage.limit ? Math.min((usage.used / usage.limit) * 100, 100) : 0;
   const telemetryByType = new Map<TelemetryEventType, number>(telemetryCounts.map((row) => [row.type, row._count._all]));
   const checkoutStatus = typeof searchParams?.checkout === "string" ? searchParams.checkout : undefined;
+  const manualReconcileStatus = typeof searchParams?.reconcile === "string" ? searchParams.reconcile : undefined;
+  const stillInconsistent = isTenantStripeInconsistent(tenant);
 
   return (
     <div className="space-y-6">
@@ -104,6 +164,18 @@ export default async function BillingPage({ searchParams }: Props) {
         </div>
       ) : null}
 
+      {manualReconcileStatus ? (
+        <div className="rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800" role="status">
+          {reconcileMessage(manualReconcileStatus, "manual")}
+        </div>
+      ) : null}
+
+      {autoReconcileState ? (
+        <div className="rounded-md border border-sky-300 bg-sky-50 p-3 text-sm text-sky-900" role="status">
+          {reconcileMessage(autoReconcileState, "auto")}
+        </div>
+      ) : null}
+
       {!stripePortalReady ? (
         <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
           Stripe não configurado neste ambiente. Defina `STRIPE_SECRET_KEY` para habilitar portal e checkout.
@@ -113,6 +185,19 @@ export default async function BillingPage({ searchParams }: Props) {
       {stripePortalReady && !stripeCheckoutReady ? (
         <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
           Checkout incompleto. Defina `STRIPE_PRICE_PRO` e `STRIPE_PRICE_ENTERPRISE` para habilitar upgrade de plano.
+        </div>
+      ) : null}
+
+      {stillInconsistent ? (
+        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">
+          Estado inconsistente entre plano local e assinatura Stripe. Sincronize agora para regularizar o tenant.
+          <div className="mt-2">
+            <form action="/api/billing/reconcile" method="POST">
+              <Button type="submit" variant="outline" size="sm" disabled={!stripePortalReady}>
+                Sincronizar assinatura agora
+              </Button>
+            </form>
+          </div>
         </div>
       ) : null}
 
@@ -170,10 +255,15 @@ export default async function BillingPage({ searchParams }: Props) {
               {tenant?.stripeCurrentPeriodEnd ? new Date(tenant.stripeCurrentPeriodEnd).toLocaleDateString("pt-BR") : "-"}
             </span>
           </p>
-          <div>
+          <div className="flex flex-wrap gap-2">
             <form action="/api/billing/portal" method="POST">
               <Button type="submit" variant="outline" disabled={!stripePortalReady}>
                 Gerenciar assinatura no Stripe
+              </Button>
+            </form>
+            <form action="/api/billing/reconcile" method="POST">
+              <Button type="submit" variant="outline" disabled={!stripePortalReady}>
+                Sincronizar agora
               </Button>
             </form>
           </div>

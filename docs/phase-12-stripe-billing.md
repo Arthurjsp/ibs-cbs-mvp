@@ -27,6 +27,7 @@ Novos endpoints:
 
 - `POST /api/billing/checkout`
 - `POST /api/billing/portal`
+- `POST /api/billing/reconcile`
 - `POST /api/billing/webhook`
 
 Bibliotecas:
@@ -40,8 +41,10 @@ Página `/billing` atualizada com:
 
 - status de assinatura Stripe
 - botão de gerenciamento no portal Stripe
+- botão de reconciliação manual para sincronizar estado local x Stripe
 - botões de upgrade por plano
 - alertas de configuração de ambiente
+- reconciliação automática quando o plano local está inconsistente com assinatura Stripe
 
 ## Variáveis de ambiente
 
