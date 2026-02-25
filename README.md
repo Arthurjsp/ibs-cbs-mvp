@@ -223,3 +223,12 @@ Detalhamento tecnico:
 - Acao de duplicar cenario para acelerar simulacoes.
 - Detalhamento tecnico:
   - `docs/phase-8-scenario-lab.md`
+
+## Fase 9 - Confianca, Auditoria e Governanca (D+30)
+
+- Score de confianca por run no detalhe de documento.
+- Trilha de auditoria explicada por aba (legado, IBS e transicao), com JSON bruto expansivel.
+- Relatorios com template executivo/tecnico, pre-visualizacao e export aderente ao template.
+- Billing com barra de consumo, alerta de limite e telemetria operacional de uso.
+- Detalhamento tecnico:
+  - `docs/phase-9-governance-confidence-reports.md`

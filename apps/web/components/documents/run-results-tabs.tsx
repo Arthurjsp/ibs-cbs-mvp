@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { buildReadableAuditEntries } from "@/lib/documents/audit-readable";
 
 type TabKey = "legacy" | "ibs" | "transition";
 
@@ -79,6 +80,27 @@ function toMoney(value: number | undefined) {
 function toRate(value: number | undefined, places = 4) {
   if (value === undefined) return "-";
   return value.toFixed(places);
+}
+
+function AuditTrailCell({ audit, perspective }: { audit: unknown; perspective: "legacy" | "ibs" | "transition" }) {
+  const entries = buildReadableAuditEntries(audit, perspective);
+
+  return (
+    <div className="max-w-[360px] text-xs">
+      <details>
+        <summary className="cursor-pointer text-primary">Ver trilha explicada</summary>
+        <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+          {entries.map((entry) => (
+            <li key={entry}>{entry}</li>
+          ))}
+        </ul>
+      </details>
+      <details className="mt-2">
+        <summary className="cursor-pointer text-muted-foreground">JSON bruto</summary>
+        <pre className="mt-1 overflow-auto whitespace-pre-wrap rounded bg-muted p-2">{JSON.stringify(audit, null, 2)}</pre>
+      </details>
+    </div>
+  );
 }
 
 export function RunResultsTabs({ rows, summary }: Props) {
@@ -170,10 +192,8 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   <TableCell>
                     {row.legacy?.unsupported ? `Sim (${row.legacy.unsupportedReasons.join(", ") || "sem detalhe"})` : "Nao"}
                   </TableCell>
-                  <TableCell className="max-w-[360px] text-xs">
-                    <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-2">
-                      {JSON.stringify(row.audit, null, 2)}
-                    </pre>
+                  <TableCell>
+                    <AuditTrailCell audit={row.audit} perspective="legacy" />
                   </TableCell>
                 </TableRow>
               ))}
@@ -207,10 +227,8 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   <TableCell>{row.ibs ? `${toRate(row.ibs.cbsRate)} (${toMoney(row.ibs.cbsValue)})` : "-"}</TableCell>
                   <TableCell>{row.ibs ? `${toRate(row.ibs.isRate)} (${toMoney(row.ibs.isValue)})` : "-"}</TableCell>
                   <TableCell>{row.ibs?.creditEligible ? "Sim" : "Nao"}</TableCell>
-                  <TableCell className="max-w-[360px] text-xs">
-                    <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-2">
-                      {JSON.stringify(row.audit, null, 2)}
-                    </pre>
+                  <TableCell>
+                    <AuditTrailCell audit={row.audit} perspective="ibs" />
                   </TableCell>
                 </TableRow>
               ))}
@@ -250,10 +268,8 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   </TableCell>
                   <TableCell>{toMoney(row.transition?.totalTax)}</TableCell>
                   <TableCell>{row.transition ? `${(row.transition.effectiveRate * 100).toFixed(2)}%` : "-"}</TableCell>
-                  <TableCell className="max-w-[360px] text-xs">
-                    <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-2">
-                      {JSON.stringify(row.audit, null, 2)}
-                    </pre>
+                  <TableCell>
+                    <AuditTrailCell audit={row.audit} perspective="transition" />
                   </TableCell>
                 </TableRow>
               ))}

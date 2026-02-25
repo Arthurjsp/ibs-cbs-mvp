@@ -1,11 +1,14 @@
-﻿import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildReportDataset, parseReportTemplate, summarizeReportDataset } from "@/lib/reports/template";
 import { monthRange } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EstimationBanner } from "@/components/trust/estimation-banner";
 import { buildEffectiveRateMessage } from "@/lib/trust/effective-rate";
+
+const currencyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function defaultMonth() {
   const now = new Date();
@@ -16,13 +19,24 @@ interface Props {
   searchParams?: {
     month?: string;
     scenarioId?: string;
+    template?: string;
   };
+}
+
+function formatCell(value: string | number | Date | null, type: "text" | "datetime" | "number" | "currency" | "percent") {
+  if (value == null) return "-";
+  if (type === "datetime") return new Date(value).toLocaleString("pt-BR");
+  if (type === "currency") return currencyFormatter.format(Number(value));
+  if (type === "percent") return `${(Number(value) * 100).toFixed(2)}%`;
+  if (type === "number") return Number(value).toLocaleString("pt-BR");
+  return String(value);
 }
 
 export default async function ReportsPage({ searchParams }: Props) {
   const user = await requireUser();
   const month = searchParams?.month ?? defaultMonth();
   const scenarioId = searchParams?.scenarioId || "";
+  const template = parseReportTemplate(searchParams?.template);
   const { start, end } = monthRange(month);
 
   const [scenarios, runs] = await Promise.all([
@@ -45,22 +59,42 @@ export default async function ReportsPage({ searchParams }: Props) {
     })
   ]);
 
+  const dataset = buildReportDataset({
+    template,
+    runs: runs.map((run) => ({
+      runId: run.id,
+      month,
+      runAt: run.runAt,
+      documentKey: run.document.key,
+      documentIssueDate: run.document.issueDate,
+      scenarioName: run.scenario?.name ?? "BASELINE",
+      ibsTotal: run.summary?.ibsTotal ?? 0,
+      cbsTotal: run.summary?.cbsTotal ?? 0,
+      isTotal: run.summary?.isTotal ?? 0,
+      creditTotal: run.summary?.creditTotal ?? 0,
+      effectiveRate: run.summary?.effectiveRate ?? 0,
+      componentsJson: run.summary?.componentsJson ?? null
+    }))
+  });
+  const summary = summarizeReportDataset(dataset);
+
   const csvHref = `/api/reports/csv?month=${encodeURIComponent(month)}${
     scenarioId ? `&scenarioId=${encodeURIComponent(scenarioId)}` : ""
-  }`;
+  }&template=${encodeURIComponent(template)}`;
   const xlsxHref = `/api/reports/xlsx?month=${encodeURIComponent(month)}${
     scenarioId ? `&scenarioId=${encodeURIComponent(scenarioId)}` : ""
-  }`;
+  }&template=${encodeURIComponent(template)}`;
 
-  const avgEffectiveRate =
-    runs.length > 0 ? runs.reduce((sum, run) => sum + Number(run.summary?.effectiveRate ?? 0), 0) / runs.length : 0;
-  const legend = buildEffectiveRateMessage(avgEffectiveRate, 100000);
+  const legend = buildEffectiveRateMessage(summary.avgEffectiveRate, 100000);
+  const previewRows = dataset.rows.slice(0, 20);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Relatórios</h1>
-        <p className="text-sm text-muted-foreground">Exportação por período e cenário com dados de simulação estimada.</p>
+        <h1 className="text-2xl font-semibold">Relatorios</h1>
+        <p className="text-sm text-muted-foreground">
+          Exportacao gerencial e tecnica por periodo/cenario com pre-visualizacao antes do download.
+        </p>
       </div>
 
       <EstimationBanner />
@@ -74,14 +108,14 @@ export default async function ReportsPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription>Selecione mês e cenário para consolidar o resultado.</CardDescription>
+          <CardTitle>Filtros e template</CardTitle>
+          <CardDescription>Defina o recorte e o layout do relatorio antes de exportar.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="flex flex-wrap items-end gap-3" method="GET">
             <div className="space-y-1">
               <label htmlFor="month" className="text-sm font-medium">
-                Mês (YYYY-MM)
+                Mes (YYYY-MM)
               </label>
               <input
                 id="month"
@@ -93,7 +127,7 @@ export default async function ReportsPage({ searchParams }: Props) {
             </div>
             <div className="space-y-1">
               <label htmlFor="scenarioId" className="text-sm font-medium">
-                Cenário
+                Cenario
               </label>
               <select
                 id="scenarioId"
@@ -109,6 +143,15 @@ export default async function ReportsPage({ searchParams }: Props) {
                 ))}
               </select>
             </div>
+            <div className="space-y-1">
+              <label htmlFor="template" className="text-sm font-medium">
+                Template
+              </label>
+              <select id="template" name="template" defaultValue={template} className="h-10 rounded-md border bg-card px-3 text-sm">
+                <option value="EXECUTIVE">Executivo</option>
+                <option value="TECHNICAL">Tecnico</option>
+              </select>
+            </div>
             <Button type="submit" variant="outline">
               Aplicar
             </Button>
@@ -122,34 +165,55 @@ export default async function ReportsPage({ searchParams }: Props) {
         </CardContent>
       </Card>
 
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>Runs no filtro</CardDescription>
+            <CardTitle>{summary.rowCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Tributo final total</CardDescription>
+            <CardTitle>{currencyFormatter.format(summary.totalFinalTax)}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Credito total</CardDescription>
+            <CardTitle>{currencyFormatter.format(summary.totalCredit)}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Itens unsupported</CardDescription>
+            <CardTitle>{summary.unsupportedItems}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Prévia do período</CardTitle>
-          <CardDescription>{runs.length} execução(ões) no filtro atual.</CardDescription>
+          <CardTitle>Pre-visualizacao ({template})</CardTitle>
+          <CardDescription>
+            Mostrando {previewRows.length} de {dataset.rows.length} linha(s). O export usa todas as linhas do filtro.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Run</TableHead>
-                <TableHead>Documento</TableHead>
-                <TableHead>Cenário</TableHead>
-                <TableHead>IBS</TableHead>
-                <TableHead>CBS</TableHead>
-                <TableHead>IS</TableHead>
-                <TableHead>Effective Rate</TableHead>
+                {dataset.columns.map((column) => (
+                  <TableHead key={column.key}>{column.label}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {runs.map((run) => (
-                <TableRow key={run.id}>
-                  <TableCell className="font-mono text-xs">{run.id}</TableCell>
-                  <TableCell>{run.document.key}</TableCell>
-                  <TableCell>{run.scenario?.name ?? "Baseline"}</TableCell>
-                  <TableCell>R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)}</TableCell>
-                  <TableCell>R$ {Number(run.summary?.cbsTotal ?? 0).toFixed(2)}</TableCell>
-                  <TableCell>R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}</TableCell>
-                  <TableCell>{Number(run.summary?.effectiveRate ?? 0).toFixed(6)}</TableCell>
+              {previewRows.map((row, index) => (
+                <TableRow key={`${String(row.runId ?? row.documentKey ?? index)}-${index}`}>
+                  {dataset.columns.map((column) => (
+                    <TableCell key={column.key}>{formatCell(row[column.key] ?? null, column.type)}</TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>

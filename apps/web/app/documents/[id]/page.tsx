@@ -10,11 +10,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CalculateConfirmSubmit } from "@/components/documents/calculate-confirm-submit";
 import { RunResultsTabs, RunResultRowView, RunSummaryView } from "@/components/documents/run-results-tabs";
 import { EstimationBanner } from "@/components/trust/estimation-banner";
+import { buildRunConfidence } from "@/lib/documents/confidence";
 import { buildEffectiveRateMessage } from "@/lib/trust/effective-rate";
 
 interface Props {
   params: { id: string };
   searchParams?: { runId?: string; queued?: string; error?: string };
+}
+
+function confidenceTone(level: "ALTA" | "MEDIA" | "BAIXA") {
+  if (level === "ALTA") {
+    return {
+      badge: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      bar: "bg-emerald-600",
+      card: "border-emerald-200"
+    };
+  }
+  if (level === "MEDIA") {
+    return {
+      badge: "bg-amber-100 text-amber-800 border-amber-200",
+      bar: "bg-amber-600",
+      card: "border-amber-200"
+    };
+  }
+  return {
+    badge: "bg-destructive/10 text-destructive border-destructive/30",
+    bar: "bg-destructive",
+    card: "border-destructive/30"
+  };
 }
 
 function asNumber(value: unknown, fallback = 0) {
@@ -241,6 +264,8 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
     : null;
   const runRows = selectedRun ? selectedRun.itemResults.map((result) => toResultRow(result)) : [];
   const runSummary = selectedRun?.summary ? toSummaryView(selectedRun.summary) : null;
+  const runConfidence = selectedRun ? buildRunConfidence(runRows.map((row) => ({ audit: row.audit }))) : null;
+  const confidenceStyle = runConfidence ? confidenceTone(runConfidence.level) : null;
 
   return (
     <div className="space-y-6">
@@ -340,6 +365,46 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <p>Transição (Final): R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}</p>
             </CardContent>
           </Card>
+
+          {runConfidence && confidenceStyle ? (
+            <Card className={confidenceStyle.card}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Score de confianca da simulacao
+                  <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${confidenceStyle.badge}`}>
+                    {runConfidence.level}
+                  </span>
+                </CardTitle>
+                <CardDescription>
+                  Leitura de cobertura com base em trilha de regras, pesos de transicao e itens unsupported.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Confianca geral</span>
+                    <span className="font-medium">{runConfidence.score.toFixed(1)} / 100</span>
+                  </div>
+                  <div className="h-2 rounded bg-muted">
+                    <div className={`h-2 rounded ${confidenceStyle.bar}`} style={{ width: `${runConfidence.score}%` }} />
+                  </div>
+                </div>
+                <div className="grid gap-2 md:grid-cols-3">
+                  <p>Itens: {runConfidence.metrics.totalItems}</p>
+                  <p>Unsupported: {runConfidence.metrics.unsupportedItems}</p>
+                  <p>Regras IBS aplicadas: {runConfidence.metrics.itemsWithMatchedRule}</p>
+                  <p>Trilha IBS detalhada: {runConfidence.metrics.itemsWithIbsAudit}</p>
+                  <p>Aliquota legado rastreada: {runConfidence.metrics.itemsWithLegacyRateConfig}</p>
+                  <p>Pesos de transicao: {runConfidence.metrics.itemsWithWeights}</p>
+                </div>
+                <div className="space-y-1 text-muted-foreground">
+                  {runConfidence.highlights.map((line) => (
+                    <p key={line}>- {line}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {effectiveRateLegend ? (
             <Card>

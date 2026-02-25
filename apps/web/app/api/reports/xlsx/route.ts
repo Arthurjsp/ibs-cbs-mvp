@@ -1,18 +1,27 @@
-﻿import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildReportDataset, parseReportTemplate } from "@/lib/reports/template";
 import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { monthRange } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
+function numFmtByType(type: "text" | "datetime" | "number" | "currency" | "percent") {
+  if (type === "datetime") return "yyyy-mm-dd hh:mm:ss";
+  if (type === "currency") return '"R$" #,##0.00';
+  if (type === "percent") return "0.00%";
+  if (type === "number") return "#,##0.00";
+  return null;
+}
+
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
   }
 
   const rateLimit = enforceRateLimit({
@@ -27,7 +36,7 @@ export async function GET(request: Request) {
   });
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Limite de exportações XLSX excedido." },
+      { error: "Limite de exportacoes XLSX excedido." },
       {
         status: 429,
         headers: {
@@ -40,8 +49,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
   const scenarioId = searchParams.get("scenarioId") || undefined;
+  const template = parseReportTemplate(searchParams.get("template"));
   if (!month) {
-    return NextResponse.json({ error: "Parâmetro month é obrigatório (YYYY-MM)." }, { status: 400 });
+    return NextResponse.json({ error: "Parametro month e obrigatorio (YYYY-MM)." }, { status: 400 });
   }
 
   const { start, end } = monthRange(month);
@@ -49,7 +59,7 @@ export async function GET(request: Request) {
     where: {
       tenantId: session.user.tenantId,
       runAt: { gte: start, lt: end },
-      scenarioId
+      ...(scenarioId ? { scenarioId } : {})
     },
     include: {
       summary: true,
@@ -59,37 +69,39 @@ export async function GET(request: Request) {
     orderBy: { runAt: "asc" }
   });
 
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Motor IBS/CBS";
-  workbook.created = new Date();
-  const sheet = workbook.addWorksheet("Calc Summary");
-
-  sheet.columns = [
-    { header: "month", key: "month", width: 12 },
-    { header: "runAt", key: "runAt", width: 24 },
-    { header: "documentKey", key: "documentKey", width: 50 },
-    { header: "documentIssueDate", key: "documentIssueDate", width: 24 },
-    { header: "scenario", key: "scenario", width: 24 },
-    { header: "ibsTotal", key: "ibsTotal", width: 16 },
-    { header: "cbsTotal", key: "cbsTotal", width: 16 },
-    { header: "isTotal", key: "isTotal", width: 16 },
-    { header: "creditTotal", key: "creditTotal", width: 16 },
-    { header: "effectiveRate", key: "effectiveRate", width: 14 }
-  ];
-
-  for (const run of runs) {
-    sheet.addRow({
+  const dataset = buildReportDataset({
+    template,
+    runs: runs.map((run) => ({
+      runId: run.id,
       month,
       runAt: run.runAt,
       documentKey: run.document.key,
       documentIssueDate: run.document.issueDate,
-      scenario: run.scenario?.name ?? "BASELINE",
-      ibsTotal: Number(run.summary?.ibsTotal ?? 0),
-      cbsTotal: Number(run.summary?.cbsTotal ?? 0),
-      isTotal: Number(run.summary?.isTotal ?? 0),
-      creditTotal: Number(run.summary?.creditTotal ?? 0),
-      effectiveRate: Number(run.summary?.effectiveRate ?? 0)
-    });
+      scenarioName: run.scenario?.name ?? "BASELINE",
+      ibsTotal: run.summary?.ibsTotal ?? 0,
+      cbsTotal: run.summary?.cbsTotal ?? 0,
+      isTotal: run.summary?.isTotal ?? 0,
+      creditTotal: run.summary?.creditTotal ?? 0,
+      effectiveRate: run.summary?.effectiveRate ?? 0,
+      componentsJson: run.summary?.componentsJson ?? null
+    }))
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Motor IBS/CBS";
+  workbook.created = new Date();
+  const sheet = workbook.addWorksheet(template === "TECHNICAL" ? "Tecnico" : "Executivo");
+
+  sheet.columns = dataset.columns.map((column) => ({
+    header: column.label,
+    key: column.key,
+    width: column.width ?? 16
+  }));
+
+  for (const row of dataset.rows) {
+    sheet.addRow(
+      Object.fromEntries(dataset.columns.map((column) => [column.key, row[column.key] ?? null]))
+    );
   }
 
   const header = sheet.getRow(1);
@@ -104,16 +116,14 @@ export async function GET(request: Request) {
   sheet.views = [{ state: "frozen", ySplit: 1 }];
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
-    to: { row: 1, column: 10 }
+    to: { row: 1, column: dataset.columns.length }
   };
 
-  sheet.getColumn("runAt").numFmt = "yyyy-mm-dd hh:mm:ss";
-  sheet.getColumn("documentIssueDate").numFmt = "yyyy-mm-dd hh:mm:ss";
-  sheet.getColumn("ibsTotal").numFmt = '"R$" #,##0.00';
-  sheet.getColumn("cbsTotal").numFmt = '"R$" #,##0.00';
-  sheet.getColumn("isTotal").numFmt = '"R$" #,##0.00';
-  sheet.getColumn("creditTotal").numFmt = '"R$" #,##0.00';
-  sheet.getColumn("effectiveRate").numFmt = "0.00%";
+  dataset.columns.forEach((column, index) => {
+    const fmt = numFmtByType(column.type);
+    if (!fmt) return;
+    sheet.getColumn(index + 1).numFmt = fmt;
+  });
 
   sheet.eachRow((row, rowNumber) => {
     row.alignment = { vertical: "middle" };
@@ -144,14 +154,15 @@ export async function GET(request: Request) {
     payload: {
       month,
       scenarioId: scenarioId ?? null,
-      rowCount: runs.length
+      template,
+      rowCount: dataset.rows.length
     }
   });
 
   return new NextResponse(bytes, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="calc-summary-${month}.xlsx"`
+      "Content-Disposition": `attachment; filename="calc-summary-${template.toLowerCase()}-${month}.xlsx"`
     }
   });
 }

@@ -1,7 +1,8 @@
-﻿import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildReportDataset, parseReportTemplate, ReportValueType } from "@/lib/reports/template";
 import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { monthRange } from "@/lib/utils";
@@ -15,10 +16,19 @@ function toPtBrNumber(value: number, fractionDigits: number) {
   return value.toFixed(fractionDigits).replace(".", ",");
 }
 
+function formatCsvValue(value: string | number | Date | null, type: ReportValueType) {
+  if (value == null) return "";
+  if (type === "datetime") return new Date(value).toISOString();
+  if (type === "currency") return toPtBrNumber(Number(value), 2);
+  if (type === "percent") return `${toPtBrNumber(Number(value) * 100, 2)}%`;
+  if (type === "number") return toPtBrNumber(Number(value), 2);
+  return String(value);
+}
+
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
   }
 
   const rateLimit = enforceRateLimit({
@@ -33,7 +43,7 @@ export async function GET(request: Request) {
   });
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Limite de exportações CSV excedido." },
+      { error: "Limite de exportacoes CSV excedido." },
       {
         status: 429,
         headers: {
@@ -46,8 +56,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
   const scenarioId = searchParams.get("scenarioId") || undefined;
+  const template = parseReportTemplate(searchParams.get("template"));
   if (!month) {
-    return NextResponse.json({ error: "Parâmetro month é obrigatório (YYYY-MM)." }, { status: 400 });
+    return NextResponse.json({ error: "Parametro month e obrigatorio (YYYY-MM)." }, { status: 400 });
   }
 
   const { start, end } = monthRange(month);
@@ -55,7 +66,7 @@ export async function GET(request: Request) {
     where: {
       tenantId: session.user.tenantId,
       runAt: { gte: start, lt: end },
-      scenarioId
+      ...(scenarioId ? { scenarioId } : {})
     },
     include: {
       summary: true,
@@ -65,39 +76,30 @@ export async function GET(request: Request) {
     orderBy: { runAt: "asc" }
   });
 
-  const rows: string[][] = [
-    [
-      "month",
-      "runAt",
-      "documentKey",
-      "documentIssueDate",
-      "scenario",
-      "ibsTotal",
-      "cbsTotal",
-      "isTotal",
-      "creditTotal",
-      "effectiveRate"
-    ]
-  ];
-
-  for (const run of runs) {
-    rows.push([
+  const dataset = buildReportDataset({
+    template,
+    runs: runs.map((run) => ({
+      runId: run.id,
       month,
-      run.runAt.toISOString(),
-      run.document.key,
-      run.document.issueDate.toISOString(),
-      run.scenario?.name ?? "BASELINE",
-      toPtBrNumber(Number(run.summary?.ibsTotal ?? 0), 2),
-      toPtBrNumber(Number(run.summary?.cbsTotal ?? 0), 2),
-      toPtBrNumber(Number(run.summary?.isTotal ?? 0), 2),
-      toPtBrNumber(Number(run.summary?.creditTotal ?? 0), 2),
-      toPtBrNumber(Number(run.summary?.effectiveRate ?? 0), 6)
-    ]);
+      runAt: run.runAt,
+      documentKey: run.document.key,
+      documentIssueDate: run.document.issueDate,
+      scenarioName: run.scenario?.name ?? "BASELINE",
+      ibsTotal: run.summary?.ibsTotal ?? 0,
+      cbsTotal: run.summary?.cbsTotal ?? 0,
+      isTotal: run.summary?.isTotal ?? 0,
+      creditTotal: run.summary?.creditTotal ?? 0,
+      effectiveRate: run.summary?.effectiveRate ?? 0,
+      componentsJson: run.summary?.componentsJson ?? null
+    }))
+  });
+
+  const rows: string[][] = [dataset.columns.map((column) => column.label)];
+  for (const row of dataset.rows) {
+    rows.push(dataset.columns.map((column) => formatCsvValue(row[column.key] ?? null, column.type)));
   }
 
   const csv = rows.map((row) => row.map(csvEscape).join(";")).join("\r\n");
-
-  // BOM helps Excel detect UTF-8 correctly.
   const body = `\uFEFF${csv}`;
 
   await trackTelemetryEvent({
@@ -107,14 +109,15 @@ export async function GET(request: Request) {
     payload: {
       month,
       scenarioId: scenarioId ?? null,
-      rowCount: rows.length - 1
+      template,
+      rowCount: dataset.rows.length
     }
   });
 
   return new NextResponse(body, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="calc-summary-${month}.csv"`
+      "Content-Disposition": `attachment; filename="calc-summary-${template.toLowerCase()}-${month}.csv"`
     }
   });
 }
