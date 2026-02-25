@@ -70,3 +70,11 @@ export async function requireUser() {
   }
   return session.user;
 }
+
+export async function requireRoles(allowedRoles: UserRole[]) {
+  const user = await requireUser();
+  if (!allowedRoles.includes(user.role)) {
+    redirect("/dashboard");
+  }
+  return user;
+}

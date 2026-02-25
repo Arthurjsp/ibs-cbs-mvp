@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Circle, CircleDashed } from "lucide-react";
@@ -19,6 +20,15 @@ interface UploadResponsePayload {
   error?: string;
   details?: string[];
 }
+
+interface BatchFileResult {
+  fileName: string;
+  status: "success" | "error";
+  documentId?: string;
+  error?: string;
+}
+
+const MAX_BATCH_FILES = 20;
 
 function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
@@ -53,37 +63,49 @@ function UploadStepRow({ step, index }: { step: UploadFlowStep; index: number })
   );
 }
 
+function validateFile(file: File): string | null {
+  const name = file.name.toLowerCase();
+  if (!name.endsWith(".xml")) return "precisa ter extensão .xml";
+  if (file.size > MAX_NFE_XML_SIZE_BYTES) {
+    return `excede o limite de ${formatSize(MAX_NFE_XML_SIZE_BYTES)}`;
+  }
+  if (file.size === 0) return "está vazio";
+  return null;
+}
+
 export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
   const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [companyProfileId, setCompanyProfileId] = useState(companies[0]?.id ?? "");
   const [error, setError] = useState<string | null>(null);
   const [details, setDetails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
+  const [batchResults, setBatchResults] = useState<BatchFileResult[]>([]);
 
   const localValidationError = useMemo(() => {
-    if (!file) return null;
-    const name = file.name.toLowerCase();
-    if (!name.endsWith(".xml")) return "O arquivo precisa ter extensão .xml.";
-    if (file.size > MAX_NFE_XML_SIZE_BYTES) {
-      return `O arquivo excede o limite de ${formatSize(MAX_NFE_XML_SIZE_BYTES)}.`;
+    if (files.length === 0) return null;
+    if (files.length > MAX_BATCH_FILES) return `Selecione no máximo ${MAX_BATCH_FILES} arquivos por lote.`;
+
+    for (const file of files) {
+      const fileError = validateFile(file);
+      if (fileError) return `O arquivo ${file.name} ${fileError}.`;
     }
-    if (file.size === 0) return "O arquivo está vazio.";
     return null;
-  }, [file]);
+  }, [files]);
 
   const steps = buildUploadFlowSteps({
     hasCompany: Boolean(companyProfileId),
-    hasFile: Boolean(file),
+    hasFile: files.length > 0,
     localValidationError,
     loading
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!file) {
-      setError("Selecione um XML NF-e.");
-      setDetails(["Use um arquivo NF-e modelo 55 em formato XML."]);
+    if (files.length === 0) {
+      setError("Selecione ao menos um XML NF-e.");
+      setDetails(["Você pode enviar um arquivo único ou um lote com múltiplos XMLs."]);
       return;
     }
     if (localValidationError) {
@@ -95,32 +117,78 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
     setError(null);
     setDetails([]);
     setLoading(true);
+    setBatchResults([]);
+    setProgress({ current: 0, total: files.length });
 
-    const formData = new FormData();
-    formData.append("file", file);
-    if (companyProfileId) formData.append("companyProfileId", companyProfileId);
+    const results: BatchFileResult[] = [];
 
-    try {
-      const response = await fetch("/api/documents/upload", {
-        method: "POST",
-        body: formData
-      });
-      const payload = (await response.json()) as UploadResponsePayload;
-      setLoading(false);
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      setProgress({ current: index + 1, total: files.length });
 
-      if (!response.ok || !payload.id) {
-        setError(payload.error ?? "Falha ao importar XML.");
-        setDetails(payload.details ?? []);
-        return;
+      const formData = new FormData();
+      formData.append("file", file);
+      if (companyProfileId) formData.append("companyProfileId", companyProfileId);
+
+      try {
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const payload = (await response.json()) as UploadResponsePayload;
+        if (!response.ok || !payload.id) {
+          results.push({
+            fileName: file.name,
+            status: "error",
+            error: payload.error ?? "Falha ao importar XML."
+          });
+          continue;
+        }
+
+        results.push({
+          fileName: file.name,
+          status: "success",
+          documentId: payload.id
+        });
+      } catch {
+        results.push({
+          fileName: file.name,
+          status: "error",
+          error: "Falha de conexão ao enviar o XML."
+        });
       }
-
-      router.push(`/documents/${payload.id}`);
-      router.refresh();
-    } catch {
-      setLoading(false);
-      setError("Falha de conexão ao enviar o XML.");
-      setDetails(["Verifique sua conexão e tente novamente."]);
     }
+
+    setLoading(false);
+    setProgress(null);
+    setBatchResults(results);
+
+    const successResults = results.filter((result) => result.status === "success");
+    const errorResults = results.filter((result) => result.status === "error");
+
+    if (successResults.length === 1 && errorResults.length === 0 && files.length === 1) {
+      router.push(`/documents/${successResults[0].documentId}`);
+      router.refresh();
+      return;
+    }
+
+    if (successResults.length > 0 && errorResults.length > 0) {
+      setError(`Lote finalizado com parcial: ${successResults.length} sucesso(s) e ${errorResults.length} erro(s).`);
+      setDetails(errorResults.slice(0, 5).map((result) => `${result.fileName}: ${result.error}`));
+      router.refresh();
+      return;
+    }
+
+    if (successResults.length > 0) {
+      setError(null);
+      setDetails([`${successResults.length} arquivo(s) importado(s) com sucesso.`]);
+      router.refresh();
+      return;
+    }
+
+    setError("Nenhum arquivo foi importado.");
+    setDetails(errorResults.slice(0, 5).map((result) => `${result.fileName}: ${result.error}`));
   }
 
   return (
@@ -159,24 +227,41 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="file">XML NF-e</Label>
+          <Label htmlFor="file">XML NF-e (um ou vários arquivos)</Label>
           <Input
             id="file"
             type="file"
             accept=".xml,text/xml,application/xml"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            multiple
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
             aria-describedby="file-help"
             required
           />
           <p id="file-help" className="text-xs text-muted-foreground">
-            Limite: {formatSize(MAX_NFE_XML_SIZE_BYTES)}. Formato esperado: NF-e modelo 55 em XML (layout 4.00).
+            Limite: {formatSize(MAX_NFE_XML_SIZE_BYTES)} por arquivo. Máximo de {MAX_BATCH_FILES} arquivos por lote.
           </p>
-          {file ? (
-            <p className="text-xs text-muted-foreground">
-              Arquivo selecionado: {file.name} ({formatSize(file.size)})
-            </p>
+          {files.length > 0 ? (
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p>
+                {files.length} arquivo(s) selecionado(s) | tamanho total: {formatSize(files.reduce((acc, file) => acc + file.size, 0))}
+              </p>
+              <ul className="list-disc pl-5">
+                {files.slice(0, 5).map((file) => (
+                  <li key={`${file.name}-${file.size}`}>
+                    {file.name} ({formatSize(file.size)})
+                  </li>
+                ))}
+                {files.length > 5 ? <li>... e mais {files.length - 5} arquivo(s)</li> : null}
+              </ul>
+            </div>
           ) : null}
         </div>
+
+        {progress ? (
+          <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground" aria-live="polite">
+            Importando lote: arquivo {progress.current} de {progress.total}.
+          </div>
+        ) : null}
 
         {localValidationError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert" aria-live="assertive">
@@ -198,9 +283,31 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
         ) : null}
 
         <Button type="submit" disabled={loading || Boolean(localValidationError)}>
-          {loading ? "Importando XML..." : "Importar XML e abrir documento"}
+          {loading ? "Importando lote..." : files.length > 1 ? "Importar lote XML" : "Importar XML e abrir documento"}
         </Button>
       </form>
+
+      {batchResults.length > 0 ? (
+        <div className="rounded-md border p-4">
+          <p className="text-sm font-medium">Resumo do lote</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {batchResults.map((result) => (
+              <li key={`${result.fileName}-${result.documentId ?? result.error}`} className="flex flex-wrap items-center gap-2">
+                <span className={result.status === "success" ? "text-emerald-700" : "text-destructive"}>
+                  {result.status === "success" ? "OK" : "ERRO"}
+                </span>
+                <span>{result.fileName}</span>
+                {result.documentId ? (
+                  <Link href={`/documents/${result.documentId}`} className="text-primary underline underline-offset-2">
+                    abrir documento
+                  </Link>
+                ) : null}
+                {result.error ? <span className="text-muted-foreground">- {result.error}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

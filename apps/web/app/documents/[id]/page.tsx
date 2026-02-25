@@ -55,6 +55,34 @@ function asBoolean(value: unknown, fallback = false) {
   return fallback;
 }
 
+const brlFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function toMoney(value: number) {
+  return brlFormatter.format(value);
+}
+
+function formatSignedMoney(value: number) {
+  if (value === 0) return toMoney(0);
+  const absolute = toMoney(Math.abs(value));
+  return value > 0 ? `+${absolute}` : `-${absolute}`;
+}
+
+function formatSignedPp(value: number) {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)} p.p.`;
+}
+
+function formatSignedPercent(value: number | null) {
+  if (value == null) return "n/a";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+function calcDeltaPct(current: number, baseline: number) {
+  if (baseline === 0) return null;
+  return ((current - baseline) / baseline) * 100;
+}
+
 function toResultRow(result: any): RunResultRowView {
   const components = (result.componentsJson ?? null) as any;
   const legacy = components?.legacy
@@ -207,13 +235,15 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
       select: {
         id: true,
         runAt: true,
+        scenarioId: true,
         summary: {
           select: {
             ibsTotal: true,
             cbsTotal: true,
             isTotal: true,
             creditTotal: true,
-            effectiveRate: true
+            effectiveRate: true,
+            componentsJson: true
           }
         },
         scenario: {
@@ -272,6 +302,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
         },
         select: {
           id: true,
+          scenarioId: true,
           summary: {
             select: {
               ibsTotal: true,
@@ -318,6 +349,44 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
   const runSummary = selectedRun?.summary ? toSummaryView(selectedRun.summary) : null;
   const runConfidence = selectedRun ? buildRunConfidence(runRows.map((row) => ({ audit: row.audit }))) : null;
   const confidenceStyle = runConfidence ? confidenceTone(runConfidence.level) : null;
+  const baselineRun = runs.find((run) => run.scenarioId === null && run.summary) ?? null;
+  const baselineSummary = baselineRun?.summary ? toSummaryView(baselineRun.summary) : null;
+
+  const canCompareWithBaseline = Boolean(
+    selectedRun?.summary && runSummary && baselineRun?.summary && baselineSummary && baselineRun.id !== selectedRun.id
+  );
+
+  const comparison = canCompareWithBaseline
+    ? (() => {
+        const selectedTax = runSummary!.transitionTaxTotal ?? 0;
+        const baselineTax = baselineSummary!.transitionTaxTotal ?? 0;
+        const taxDelta = selectedTax - baselineTax;
+        const taxDeltaPct = calcDeltaPct(selectedTax, baselineTax);
+
+        const selectedRate = Number(selectedRun!.summary!.effectiveRate);
+        const baselineRate = Number(baselineRun!.summary!.effectiveRate);
+        const rateDeltaPp = (selectedRate - baselineRate) * 100;
+
+        const selectedCredit = Number(selectedRun!.summary!.creditTotal);
+        const baselineCredit = Number(baselineRun!.summary!.creditTotal);
+        const creditDelta = selectedCredit - baselineCredit;
+        const creditDeltaPct = calcDeltaPct(selectedCredit, baselineCredit);
+
+        return {
+          selectedTax,
+          baselineTax,
+          taxDelta,
+          taxDeltaPct,
+          selectedRate,
+          baselineRate,
+          rateDeltaPp,
+          selectedCredit,
+          baselineCredit,
+          creditDelta,
+          creditDeltaPct
+        };
+      })()
+    : null;
 
   return (
     <div className="space-y-6">
@@ -435,6 +504,51 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <p>
                 <span className="font-medium">Transição (Final):</span> R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Comparativo com baseline</CardTitle>
+              <CardDescription>
+                Diferença do run selecionado vs cálculo sem cenário para o mesmo documento.
+                {baselineRun ? ` Baseline: ${new Date(baselineRun.runAt).toLocaleString("pt-BR")}.` : ""}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {comparison ? (
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="rounded-md border p-3">
+                    <p className="text-muted-foreground">Tributo final</p>
+                    <p className="font-medium">
+                      {toMoney(comparison.selectedTax)} vs {toMoney(comparison.baselineTax)}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Delta: {formatSignedMoney(comparison.taxDelta)} ({formatSignedPercent(comparison.taxDeltaPct)})
+                    </p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-muted-foreground">Effective rate</p>
+                    <p className="font-medium">
+                      {(comparison.selectedRate * 100).toFixed(2)}% vs {(comparison.baselineRate * 100).toFixed(2)}%
+                    </p>
+                    <p className="text-muted-foreground">Delta: {formatSignedPp(comparison.rateDeltaPp)}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-muted-foreground">Crédito</p>
+                    <p className="font-medium">
+                      {toMoney(comparison.selectedCredit)} vs {toMoney(comparison.baselineCredit)}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Delta: {formatSignedMoney(comparison.creditDelta)} ({formatSignedPercent(comparison.creditDeltaPct)})
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Selecione um run com cenário e garanta ao menos um run baseline para habilitar o comparativo.
+                </p>
+              )}
             </CardContent>
           </Card>
 

@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           Ir para o conteúdo principal
         </a>
         <Providers session={session}>
-          {showHeader ? <HeaderShell email={session?.user?.email} /> : null}
+          {showHeader ? <HeaderShell email={session?.user?.email} role={session?.user?.role} /> : null}
           <main id="main-content" className="container-page">
             {children}
           </main>

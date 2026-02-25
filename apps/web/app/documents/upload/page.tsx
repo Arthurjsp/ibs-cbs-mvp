@@ -35,7 +35,7 @@ export default async function UploadDocumentPage() {
         <CardHeader>
           <CardTitle>Upload XML NF-e</CardTitle>
           <CardDescription>
-            Nesta tela você decide qual NF-e importar para iniciar o cálculo com trilha de auditoria.
+            Nesta tela você decide quais NF-es importar (arquivo único ou lote) para iniciar o cálculo com trilha de auditoria.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,12 +46,12 @@ export default async function UploadDocumentPage() {
       <div className="grid max-w-4xl gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>O que acontece apos o upload</CardTitle>
+            <CardTitle>O que acontece após o upload</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm text-muted-foreground">
             <p>1) O documento e os itens são salvos no tenant.</p>
             <p>2) O XML bruto fica armazenado para rastreabilidade.</p>
-            <p>3) Você segue para a tela de cálculo do documento.</p>
+            <p>3) Em lote, cada arquivo recebe status de sucesso/erro com link para o documento importado.</p>
           </CardContent>
         </Card>
 

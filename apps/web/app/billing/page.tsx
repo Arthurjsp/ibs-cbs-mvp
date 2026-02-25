@@ -1,5 +1,5 @@
 import { TelemetryEventType, TenantPlan } from "@prisma/client";
-import { requireUser } from "@/lib/auth";
+import { requireRoles } from "@/lib/auth";
 import { PLAN_LIMITS, checkSimulationLimit } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ function usageStatusText(usagePercent: number) {
 }
 
 export default async function BillingPage() {
-  const user = await requireUser();
+  const user = await requireRoles(["ADMIN", "CFO"]);
   const monthRef = new Date();
   const telemetryFrom = new Date(monthRef.getTime() - 30 * 24 * 60 * 60 * 1000);
 
