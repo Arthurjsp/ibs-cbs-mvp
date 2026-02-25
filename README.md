@@ -214,3 +214,12 @@ Detalhamento tecnico:
 - Pagina de estrategia interna: `/strategy`.
 - Documento de estrategia e ICP: `docs/tax-transition-os.md`.
 - Objetivo comercial: nao competir como compliance commodity, e sim como cockpit de decisao para CFO/Controller.
+
+## Fase 8 - Scenario Lab (D+14)
+
+- Comparacao lado a lado de ate 3 cenarios no `/scenarios`.
+- Baseline automatico com delta de tributo e leitura de impacto em preco/resultado.
+- Formulario com sliders para transicao e repasse, com preview imediato.
+- Acao de duplicar cenario para acelerar simulacoes.
+- Detalhamento tecnico:
+  - `docs/phase-8-scenario-lab.md`
