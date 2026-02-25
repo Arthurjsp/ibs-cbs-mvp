@@ -28,12 +28,20 @@ export function getStripeClient() {
 }
 
 export function getAppOrigin(requestUrl?: string) {
+  if (requestUrl) {
+    return new URL(requestUrl).origin;
+  }
   const configured = process.env.NEXTAUTH_URL?.trim();
   if (configured) {
     return configured.replace(/\/+$/, "");
   }
-  if (requestUrl) {
-    return new URL(requestUrl).origin;
+  const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelProductionUrl) {
+    return vercelProductionUrl.startsWith("http") ? vercelProductionUrl : `https://${vercelProductionUrl}`;
+  }
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    return vercelUrl.startsWith("http") ? vercelUrl : `https://${vercelUrl}`;
   }
   return "http://localhost:3000";
 }
