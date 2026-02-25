@@ -184,20 +184,43 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
   const [document, scenarios, runs] = await Promise.all([
     prisma.document.findFirst({
       where: { id: params.id, tenantId: user.tenantId },
-      include: {
-        companyProfile: true,
-        items: { orderBy: { lineNumber: "asc" } }
+      select: {
+        id: true,
+        key: true,
+        type: true,
+        issueDate: true,
+        emitterUf: true,
+        recipientUf: true,
+        totalValue: true
       }
     }),
     prisma.scenario.findMany({
       where: { tenantId: user.tenantId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true
+      }
     }),
     prisma.calcRun.findMany({
       where: { tenantId: user.tenantId, documentId: params.id },
-      include: {
-        summary: true,
-        scenario: true
+      select: {
+        id: true,
+        runAt: true,
+        summary: {
+          select: {
+            ibsTotal: true,
+            cbsTotal: true,
+            isTotal: true,
+            creditTotal: true,
+            effectiveRate: true
+          }
+        },
+        scenario: {
+          select: {
+            name: true
+          }
+        }
       },
       orderBy: { runAt: "desc" }
     })
@@ -247,11 +270,37 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
           tenantId: user.tenantId,
           documentId: params.id
         },
-        include: {
-          summary: true,
+        select: {
+          id: true,
+          summary: {
+            select: {
+              ibsTotal: true,
+              cbsTotal: true,
+              isTotal: true,
+              creditTotal: true,
+              effectiveRate: true,
+              componentsJson: true
+            }
+          },
           itemResults: {
-            include: {
-              documentItem: true
+            select: {
+              ibsRate: true,
+              cbsRate: true,
+              isRate: true,
+              ibsValue: true,
+              cbsValue: true,
+              isValue: true,
+              taxBase: true,
+              creditEligible: true,
+              auditJson: true,
+              componentsJson: true,
+              documentItem: {
+                select: {
+                  lineNumber: true,
+                  description: true,
+                  ncm: true
+                }
+              }
             },
             orderBy: {
               documentItem: { lineNumber: "asc" }

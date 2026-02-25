@@ -60,7 +60,11 @@ export default async function ReportsPage({ searchParams }: Props) {
   const [scenarios, runs] = await Promise.all([
     prisma.scenario.findMany({
       where: { tenantId: user.tenantId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true
+      }
     }),
     prisma.calcRun.findMany({
       where: {
@@ -68,12 +72,32 @@ export default async function ReportsPage({ searchParams }: Props) {
         runAt: { gte: start, lt: end },
         ...(scenarioId ? { scenarioId } : {})
       },
-      include: {
-        summary: true,
-        document: true,
-        scenario: true
-      },
-      orderBy: { runAt: "desc" }
+      orderBy: { runAt: "desc" },
+      select: {
+        id: true,
+        runAt: true,
+        summary: {
+          select: {
+            ibsTotal: true,
+            cbsTotal: true,
+            isTotal: true,
+            creditTotal: true,
+            effectiveRate: true,
+            componentsJson: true
+          }
+        },
+        document: {
+          select: {
+            key: true,
+            issueDate: true
+          }
+        },
+        scenario: {
+          select: {
+            name: true
+          }
+        }
+      }
     })
   ]);
 

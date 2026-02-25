@@ -9,7 +9,11 @@ export default async function DocumentsPage() {
   const user = await requireUser();
   const documents = await prisma.document.findMany({
     where: { tenantId: user.tenantId },
-    include: {
+    select: {
+      id: true,
+      key: true,
+      issueDate: true,
+      totalValue: true,
       _count: { select: { items: true, calcRuns: true } }
     },
     orderBy: { issueDate: "desc" }

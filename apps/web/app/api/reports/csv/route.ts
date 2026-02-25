@@ -68,8 +68,19 @@ export async function GET(request: Request) {
       runAt: { gte: start, lt: end },
       ...(scenarioId ? { scenarioId } : {})
     },
-    include: {
-      summary: true,
+    select: {
+      id: true,
+      runAt: true,
+      summary: {
+        select: {
+          ibsTotal: true,
+          cbsTotal: true,
+          isTotal: true,
+          creditTotal: true,
+          effectiveRate: true,
+          componentsJson: true
+        }
+      },
       document: { select: { key: true, issueDate: true } },
       scenario: { select: { name: true } }
     },

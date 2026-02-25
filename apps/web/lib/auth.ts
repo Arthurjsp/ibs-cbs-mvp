@@ -3,6 +3,7 @@ import { UserRole } from "@prisma/client";
 import { type NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
@@ -56,15 +57,16 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET
 };
 
+const getCachedSession = cache(() => getServerSession(authOptions));
+
 export function getRequiredSession() {
-  return getServerSession(authOptions);
+  return getCachedSession();
 }
 
 export async function requireUser() {
-  const session = await getServerSession(authOptions);
+  const session = await getRequiredSession();
   if (!session?.user?.id || !session.user.tenantId) {
     redirect("/auth/signin");
   }
   return session.user;
 }
-

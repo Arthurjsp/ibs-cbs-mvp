@@ -29,13 +29,30 @@ export default async function ScenariosPage() {
   const [scenarios, runs] = await Promise.all([
     prisma.scenario.findMany({
       where: { tenantId: user.tenantId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        parametersJson: true
+      }
     }),
     prisma.calcRun.findMany({
       where: { tenantId: user.tenantId },
       orderBy: { runAt: "desc" },
-      include: {
-        summary: true,
+      select: {
+        id: true,
+        runAt: true,
+        scenarioId: true,
+        summary: {
+          select: {
+            ibsTotal: true,
+            cbsTotal: true,
+            isTotal: true,
+            effectiveRate: true,
+            componentsJson: true
+          }
+        },
         document: {
           select: {
             key: true,

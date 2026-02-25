@@ -1,7 +1,6 @@
 import "./globals.css";
 import { ReactNode } from "react";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getRequiredSession } from "@/lib/auth";
 import { Providers } from "@/components/providers";
 import { HeaderShell } from "@/components/header-shell";
 
@@ -11,7 +10,7 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const session = await getServerSession(authOptions);
+  const session = await getRequiredSession();
   const showHeader = Boolean(session?.user);
 
   return (

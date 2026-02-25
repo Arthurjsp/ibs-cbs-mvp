@@ -52,13 +52,46 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const now = new Date();
   const telemetryFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const dashboardLookbackStart = new Date(Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1));
 
-  const [company, runs, telemetryCounts, creditByStatus, divergenceByStatus] = await Promise.all([
+  const [company, runs, totalsAggregate, totalSimulations, telemetryCounts, creditByStatus, divergenceByStatus] = await Promise.all([
     prisma.companyProfile.findFirst({ where: { tenantId: user.tenantId } }),
     prisma.calcRun.findMany({
-      where: { tenantId: user.tenantId },
-      include: { summary: true },
-      orderBy: { runAt: "asc" }
+      where: {
+        tenantId: user.tenantId,
+        runAt: { gte: dashboardLookbackStart }
+      },
+      orderBy: { runAt: "asc" },
+      select: {
+        runAt: true,
+        summary: {
+          select: {
+            ibsTotal: true,
+            cbsTotal: true,
+            isTotal: true,
+            effectiveRate: true
+          }
+        }
+      }
+    }),
+    prisma.calcSummary.aggregate({
+      where: {
+        calcRun: {
+          is: {
+            tenantId: user.tenantId
+          }
+        }
+      },
+      _sum: {
+        ibsTotal: true,
+        cbsTotal: true,
+        isTotal: true
+      }
+    }),
+    prisma.calcRun.count({
+      where: {
+        tenantId: user.tenantId
+      }
     }),
     prisma.telemetryEvent.groupBy({
       by: ["type"],
@@ -127,16 +160,12 @@ export default async function DashboardPage() {
   const simMom = calculateVariation(current.simulations, previous.simulations);
   const simYoy = calculateVariation(current.simulations, previousYear.simulations);
 
-  const totals = monthlyRows.reduce(
-    (acc, row) => {
-      acc.ibs += row.ibsTotal;
-      acc.cbs += row.cbsTotal;
-      acc.is += row.isTotal;
-      acc.simulations += row.simulations;
-      return acc;
-    },
-    { ibs: 0, cbs: 0, is: 0, simulations: 0 }
-  );
+  const totals = {
+    ibs: Number(totalsAggregate._sum.ibsTotal ?? 0),
+    cbs: Number(totalsAggregate._sum.cbsTotal ?? 0),
+    is: Number(totalsAggregate._sum.isTotal ?? 0),
+    simulations: totalSimulations
+  };
 
   const effectiveRateLegend = buildEffectiveRateMessage(current.effectiveRate, Math.max(currentTax, 100000));
 
