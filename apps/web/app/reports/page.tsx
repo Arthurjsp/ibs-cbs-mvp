@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+﻿import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   buildExecutiveInsights,
@@ -137,9 +137,9 @@ export default async function ReportsPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Relatórios</h1>
+        <h1 className="text-2xl font-semibold">RelatÃ³rios</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela você decide o recorte de exportação e valida os dados antes do download.
+          Nesta tela vocÃª decide o recorte de exportaÃ§Ã£o e valida os dados antes do download.
         </p>
       </div>
 
@@ -155,65 +155,77 @@ export default async function ReportsPage({ searchParams }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Filtros e template</CardTitle>
-          <CardDescription>Defina período, cenário e formato antes de exportar.</CardDescription>
+          <CardDescription>Defina perÃ­odo, cenÃ¡rio e formato antes de exportar.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="flex flex-wrap items-end gap-3" method="GET">
-            <div className="space-y-1">
-              <label htmlFor="month" className="text-sm font-medium">
-                Mês (YYYY-MM)
-              </label>
-              <input
-                id="month"
-                name="month"
-                defaultValue={month}
-                className="h-10 rounded-md border bg-card px-3 text-sm"
-                placeholder="2026-01"
-                aria-describedby="month-help"
-              />
-              <p id="month-help" className="text-xs text-muted-foreground">
-                Exemplo: 2026-02.
-              </p>
+          <form className="space-y-4" method="GET">
+            <div className="grid gap-3 lg:grid-cols-12 lg:items-end">
+              <div className="space-y-1 lg:col-span-3">
+                <label htmlFor="month" className="text-sm font-medium">
+                  Mês (YYYY-MM)
+                </label>
+                <input
+                  id="month"
+                  name="month"
+                  defaultValue={month}
+                  className="h-10 w-full rounded-md border bg-card px-3 text-sm"
+                  placeholder="2026-01"
+                  aria-describedby="month-help"
+                />
+                <p id="month-help" className="text-xs text-muted-foreground">
+                  Exemplo: 2026-02.
+                </p>
+              </div>
+
+              <div className="space-y-1 lg:col-span-4">
+                <label htmlFor="scenarioId" className="text-sm font-medium">
+                  Cenário
+                </label>
+                <select
+                  id="scenarioId"
+                  name="scenarioId"
+                  defaultValue={scenarioId}
+                  className="h-10 w-full rounded-md border bg-card px-3 text-sm"
+                >
+                  <option value="">Todos/Baseline</option>
+                  {scenarios.map((scenario) => (
+                    <option key={scenario.id} value={scenario.id}>
+                      {scenario.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1 lg:col-span-2">
+                <label htmlFor="template" className="text-sm font-medium">
+                  Template
+                </label>
+                <select
+                  id="template"
+                  name="template"
+                  defaultValue={template}
+                  className="h-10 w-full rounded-md border bg-card px-3 text-sm"
+                >
+                  <option value="EXECUTIVE">Executivo</option>
+                  <option value="TECHNICAL">Técnico</option>
+                </select>
+              </div>
+
+              <div className="lg:col-span-3 lg:pb-0.5">
+                <Button type="submit" variant="outline" className="w-full lg:w-auto">
+                  Aplicar
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="scenarioId" className="text-sm font-medium">
-                Cenário
-              </label>
-              <select
-                id="scenarioId"
-                name="scenarioId"
-                defaultValue={scenarioId}
-                className="h-10 min-w-[260px] rounded-md border bg-card px-3 text-sm"
-              >
-                <option value="">Todos/Baseline</option>
-                {scenarios.map((scenario) => (
-                  <option key={scenario.id} value={scenario.id}>
-                    {scenario.name}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <a href={csvHref} className={buttonVariants()}>
+                Exportar CSV
+              </a>
+              <a href={xlsxHref} className={buttonVariants({ variant: "outline" })}>
+                Exportar XLSX
+              </a>
             </div>
-
-            <div className="space-y-1">
-              <label htmlFor="template" className="text-sm font-medium">
-                Template
-              </label>
-              <select id="template" name="template" defaultValue={template} className="h-10 rounded-md border bg-card px-3 text-sm">
-                <option value="EXECUTIVE">Executivo</option>
-                <option value="TECHNICAL">Técnico</option>
-              </select>
-            </div>
-
-            <Button type="submit" variant="outline">
-              Aplicar
-            </Button>
-            <a href={csvHref} className={buttonVariants()}>
-              Exportar CSV
-            </a>
-            <a href={xlsxHref} className={buttonVariants({ variant: "outline" })}>
-              Exportar XLSX
-            </a>
           </form>
         </CardContent>
       </Card>
@@ -233,7 +245,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Crédito total</CardDescription>
+            <CardDescription>CrÃ©dito total</CardDescription>
             <CardTitle>{currencyFormatter.format(summary.totalCredit)}</CardTitle>
           </CardHeader>
         </Card>
@@ -249,7 +261,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Resumo para diretoria</CardTitle>
-            <CardDescription>Cada alerta informa risco, contexto e ação recomendada.</CardDescription>
+            <CardDescription>Cada alerta informa risco, contexto e aÃ§Ã£o recomendada.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {insights.map((insight) => (
@@ -265,8 +277,8 @@ export default async function ReportsPage({ searchParams }: Props) {
 
         <Card>
           <CardHeader>
-          <CardTitle>Maior exposição no período</CardTitle>
-            <CardDescription>Top documentos/cenários por tributo final estimado.</CardDescription>
+          <CardTitle>Maior exposiÃ§Ã£o no perÃ­odo</CardTitle>
+            <CardDescription>Top documentos/cenÃ¡rios por tributo final estimado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {spotlight.length > 0 ? (
@@ -279,7 +291,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                     Tributo: {currencyFormatter.format(row.finalTax)} | Effective rate: {(row.effectiveRate * 100).toFixed(2)}% |
                     Unsupported: {row.unsupportedItems}
                   </p>
-                  <p className="text-muted-foreground">Ação: {row.actionHint}</p>
+                  <p className="text-muted-foreground">AÃ§Ã£o: {row.actionHint}</p>
                 </div>
               ))
             ) : (
@@ -291,14 +303,14 @@ export default async function ReportsPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pre-visualização ({template})</CardTitle>
+          <CardTitle>Pre-visualizaÃ§Ã£o ({template})</CardTitle>
           <CardDescription>
             Mostrando {previewRows.length} de {dataset.rows.length} linha(s). O export usa todas as linhas do filtro.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Pre-visualização dos dados que serão exportados</caption>
+            <caption className="sr-only">Pre-visualizaÃ§Ã£o dos dados que serÃ£o exportados</caption>
             <TableHeader>
               <TableRow>
                 {dataset.columns.map((column) => (
@@ -321,3 +333,4 @@ export default async function ReportsPage({ searchParams }: Props) {
     </div>
   );
 }
+
