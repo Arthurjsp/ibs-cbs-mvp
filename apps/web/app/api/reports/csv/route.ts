@@ -28,7 +28,7 @@ function formatCsvValue(value: string | number | Date | null, type: ReportValueT
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
-    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
   const rateLimit = enforceRateLimit({
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   });
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Limite de exportacoes CSV excedido." },
+      { error: "Limite de exportações CSV excedido." },
       {
         status: 429,
         headers: {
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
   const scenarioId = searchParams.get("scenarioId") || undefined;
   const template = parseReportTemplate(searchParams.get("template"));
   if (!month) {
-    return NextResponse.json({ error: "Parametro month e obrigatorio (YYYY-MM)." }, { status: 400 });
+    return NextResponse.json({ error: "Parâmetro month é obrigatório (YYYY-MM)." }, { status: 400 });
   }
 
   const { start, end } = monthRange(month);

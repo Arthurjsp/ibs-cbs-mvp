@@ -10,7 +10,7 @@ describe("readable audit entries", () => {
             unsupportedReasons: ["UF_CONFIG_NAO_ENCONTRADA"],
             audit: {
               rateSelection: { source: "UF_CONFIG_INTERSTATE", rate: 0.12 },
-              notes: ["ST basica nao aplicada para o item."]
+              notes: ["ST básica não aplicada para o item."]
             }
           }
         }
@@ -18,7 +18,7 @@ describe("readable audit entries", () => {
       "legacy"
     );
 
-    expect(lines[0]).toContain("Origem da aliquota legado");
+    expect(lines[0]).toContain("Origem da alíquota legado");
     expect(lines.join(" ")).toContain("UF_CONFIG_NAO_ENCONTRADA");
   });
 
@@ -44,7 +44,7 @@ describe("readable audit entries", () => {
       },
       "transition"
     );
-    expect(transitionLines.join(" ")).toContain("Ano de transicao 2030");
+    expect(transitionLines.join(" ")).toContain("Ano de transição 2030");
     expect(transitionLines.join(" ")).toContain("150.00");
   });
 });

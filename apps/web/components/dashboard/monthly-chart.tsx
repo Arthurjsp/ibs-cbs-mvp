@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatMonthKey } from "@/lib/dashboard/metrics";
@@ -39,7 +39,7 @@ export function MonthlyChart({ data }: { data: MonthlyData[] }) {
     <section className="grid gap-6 lg:grid-cols-2" aria-label="Graficos mensais de tributos e effective rate">
       <div className="h-72 rounded-xl border bg-card p-4">
         <p id="tax-monthly-title" className="mb-1 text-sm font-medium">
-          IBS/CBS/IS por mes
+          IBS/CBS/IS por mês
         </p>
         <p className="mb-2 text-xs text-muted-foreground">Visao mensal da carga simulada por tributo.</p>
         <p className="mb-2 text-xs text-muted-foreground">Legenda: IBS (barra laranja), CBS (barra verde), IS (barra azul).</p>
@@ -63,10 +63,10 @@ export function MonthlyChart({ data }: { data: MonthlyData[] }) {
         </div>
 
         <table className="sr-only" aria-labelledby="tax-monthly-title">
-          <caption>Resumo textual de IBS, CBS e IS por mes</caption>
+          <caption>Resumo textual de IBS, CBS e IS por mês</caption>
           <thead>
             <tr>
-              <th scope="col">Mes</th>
+              <th scope="col">Mês</th>
               <th scope="col">IBS</th>
               <th scope="col">CBS</th>
               <th scope="col">IS</th>
@@ -87,9 +87,9 @@ export function MonthlyChart({ data }: { data: MonthlyData[] }) {
 
       <div className="h-72 rounded-xl border bg-card p-4">
         <p id="rate-monthly-title" className="mb-1 text-sm font-medium">
-          Effective rate por mes
+          Effective rate por mês
         </p>
-        <p className="mb-2 text-xs text-muted-foreground">Relacao entre carga total estimada e base tributavel.</p>
+        <p className="mb-2 text-xs text-muted-foreground">Relação entre carga total estimada e base tributável.</p>
         <p className="mb-2 text-xs text-muted-foreground">Linha continua: quanto maior, maior impacto potencial na margem.</p>
 
         <div aria-hidden="true" className="h-[calc(100%-3.5rem)]">
@@ -108,10 +108,10 @@ export function MonthlyChart({ data }: { data: MonthlyData[] }) {
         </div>
 
         <table className="sr-only" aria-labelledby="rate-monthly-title">
-          <caption>Resumo textual de effective rate por mes</caption>
+          <caption>Resumo textual de effective rate por mês</caption>
           <thead>
             <tr>
-              <th scope="col">Mes</th>
+              <th scope="col">Mês</th>
               <th scope="col">Effective rate</th>
             </tr>
           </thead>

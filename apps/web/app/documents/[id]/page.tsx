@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
@@ -233,7 +233,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
       revalidatePath(`/documents/${params.id}`);
       targetUrl = `/documents/${params.id}?runId=${result.calcRunId}`;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Falha ao executar calculo.";
+      const message = error instanceof Error ? error.message : "Falha ao executar cálculo.";
       targetUrl = `/documents/${params.id}?error=${encodeURIComponent(message)}`;
     }
     redirect(targetUrl);
@@ -276,10 +276,10 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
         <div>
           <h1 className="text-2xl font-semibold">Documento {document.key}</h1>
           <p className="text-sm text-muted-foreground">
-            Emissao {new Date(document.issueDate).toLocaleDateString("pt-BR")} | UF {document.emitterUf} -&gt; {document.recipientUf}
+            Emissão {new Date(document.issueDate).toLocaleDateString("pt-BR")} | UF {document.emitterUf} -&gt; {document.recipientUf}
           </p>
           <p className="text-sm text-muted-foreground">
-            Nesta tela voce decide qual cenario aplicar e revisa a trilha de auditoria do calculo.
+            Nesta tela você decide qual cenário aplicar e revisa a trilha de auditoria do cálculo.
           </p>
         </div>
         <Badge variant="secondary">{document.type}</Badge>
@@ -290,7 +290,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
       {searchParams?.queued ? (
         <Card>
           <CardContent className="pt-6 text-sm text-muted-foreground" role="status" aria-live="polite">
-            Calculo enfileirado no BullMQ. Configure o worker para processamento assincrono.
+            Cálculo enfileirado no BullMQ. Configure o worker para processamento assíncrono.
           </CardContent>
         </Card>
       ) : null}
@@ -305,14 +305,14 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
 
       <Card>
         <CardHeader>
-          <CardTitle>Executar calculo estimado IBS/CBS/IS</CardTitle>
-          <CardDescription>Selecione o cenario e confirme a simulacao para gerar o run.</CardDescription>
+          <CardTitle>Executar cálculo estimado IBS/CBS/IS</CardTitle>
+          <CardDescription>Selecione o cenário e confirme a simulação para gerar o run.</CardDescription>
         </CardHeader>
         <CardContent>
           <form id="calc-form" action={calculateAction} className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <label htmlFor="scenarioId" className="text-sm font-medium">
-                Cenario
+                Cenário
               </label>
               <select
                 id="scenarioId"
@@ -320,7 +320,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                 className="h-10 min-w-[280px] rounded-md border bg-card px-3 text-sm"
                 aria-describedby="scenario-help"
               >
-                <option value="">Sem cenario (baseline)</option>
+                <option value="">Sem cenário (baseline)</option>
                 {scenarios.map((scenario) => (
                   <option key={scenario.id} value={scenario.id}>
                     {scenario.name}
@@ -328,7 +328,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                 ))}
               </select>
               <p id="scenario-help" className="text-xs text-muted-foreground">
-                O baseline usa regras ativas sem parametros extras de simulacao.
+                O baseline usa regras ativas sem parâmetros extras de simulação.
               </p>
             </div>
 
@@ -339,7 +339,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
 
       <Card>
         <CardHeader>
-          <CardTitle>Historico de runs</CardTitle>
+          <CardTitle>Histórico de runs</CardTitle>
           <CardDescription>{runs.length} run(s) para este documento.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -348,7 +348,7 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
               <div>
                 <p className="font-medium">{new Date(run.runAt).toLocaleString("pt-BR")}</p>
                 <p className="text-muted-foreground">
-                  Cenario: {run.scenario?.name ?? "Baseline"} | IBS R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)} | CBS R${" "}
+                  Cenário: {run.scenario?.name ?? "Baseline"} | IBS R$ {Number(run.summary?.ibsTotal ?? 0).toFixed(2)} | CBS R${" "}
                   {Number(run.summary?.cbsTotal ?? 0).toFixed(2)} | IS R$ {Number(run.summary?.isTotal ?? 0).toFixed(2)}
                 </p>
               </div>
@@ -378,13 +378,13 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                 <span className="font-medium">IS Total:</span> R$ {Number(selectedRun.summary?.isTotal ?? 0).toFixed(2)}
               </p>
               <p>
-                <span className="font-medium">Credito:</span> R$ {Number(selectedRun.summary?.creditTotal ?? 0).toFixed(2)}
+                <span className="font-medium">Crédito:</span> R$ {Number(selectedRun.summary?.creditTotal ?? 0).toFixed(2)}
               </p>
               <p>
                 <span className="font-medium">Effective Rate:</span> {Number(selectedRun.summary?.effectiveRate ?? 0).toFixed(4)}
               </p>
               <p>
-                <span className="font-medium">Transicao (Final):</span> R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}
+                <span className="font-medium">Transição (Final):</span> R$ {Number(runSummary?.transitionTaxTotal ?? 0).toFixed(2)}
               </p>
             </CardContent>
           </Card>
@@ -393,25 +393,25 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
             <Card className={confidenceStyle.card}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  Score de confianca da simulacao
+                  Score de confiança da simulação
                   <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${confidenceStyle.badge}`}>
                     {runConfidence.level}
                   </span>
                 </CardTitle>
                 <CardDescription>
-                  Leitura de cobertura com base em trilha de regras, pesos de transicao e itens unsupported.
+                  Leitura de cobertura com base em trilha de regras, pesos de transição e itens unsupported.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Confianca geral</span>
+                    <span>Confiança geral</span>
                     <span className="font-medium">{runConfidence.score.toFixed(1)} / 100</span>
                   </div>
                   <div className="h-2 rounded bg-muted" aria-hidden="true">
                     <div className={`h-2 rounded ${confidenceStyle.bar}`} style={{ width: `${runConfidence.score}%` }} />
                   </div>
-                  <p className="text-xs text-muted-foreground">0 a 59: baixa | 60 a 79: media | 80 a 100: alta.</p>
+                  <p className="text-xs text-muted-foreground">0 a 59: baixa | 60 a 79: média | 80 a 100: alta.</p>
                 </div>
 
                 <div className="grid gap-2 md:grid-cols-3">
@@ -419,8 +419,8 @@ export default async function DocumentDetailPage({ params, searchParams }: Props
                   <p>Unsupported: {runConfidence.metrics.unsupportedItems}</p>
                   <p>Regras IBS aplicadas: {runConfidence.metrics.itemsWithMatchedRule}</p>
                   <p>Trilha IBS detalhada: {runConfidence.metrics.itemsWithIbsAudit}</p>
-                  <p>Aliquota legado rastreada: {runConfidence.metrics.itemsWithLegacyRateConfig}</p>
-                  <p>Pesos de transicao: {runConfidence.metrics.itemsWithWeights}</p>
+                  <p>Alíquota legado rastreada: {runConfidence.metrics.itemsWithLegacyRateConfig}</p>
+                  <p>Pesos de transição: {runConfidence.metrics.itemsWithWeights}</p>
                 </div>
 
                 <div className="space-y-1 text-muted-foreground">

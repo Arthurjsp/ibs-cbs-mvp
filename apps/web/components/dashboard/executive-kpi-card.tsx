@@ -1,4 +1,4 @@
-﻿import { ArrowDownRight, ArrowUpRight, HelpCircle, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, HelpCircle, Minus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ function buildVariationText(data: VariationData) {
   if (data.value === null || !Number.isFinite(data.value)) {
     return {
       directionLabel: "Sem base comparativa",
-      impactLabel: "Aguardando historico minimo para interpretar tendencia."
+      impactLabel: "Aguardando histórico mínimo para interpretar tendência."
     };
   }
 
@@ -35,8 +35,8 @@ function buildVariationText(data: VariationData) {
 
   if (!isUp && !isDown) {
     return {
-      directionLabel: "Estavel",
-      impactLabel: "Sem variacao material no periodo comparado."
+      directionLabel: "Estável",
+      impactLabel: "Sem variação material no período comparado."
     };
   }
 
@@ -44,7 +44,7 @@ function buildVariationText(data: VariationData) {
 
   return {
     directionLabel: isUp ? "Subiu" : "Caiu",
-    impactLabel: favorable ? "Impacto favoravel no negocio." : "Impacto desfavoravel no negocio."
+    impactLabel: favorable ? "Impacto favorável no negócio." : "Impacto desfavorável no negócio."
   };
 }
 
@@ -115,13 +115,13 @@ export function ExecutiveKpiCard({ title, value, whatIsIt, whyItMatters, action,
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">O que e:</span> {whatIsIt}
+          <span className="font-medium text-foreground">O que é:</span> {whatIsIt}
         </p>
         <p className="text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Por que importa:</span> {whyItMatters}
         </p>
         <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Acao sugerida:</span> {action}
+          <span className="font-medium text-foreground">Ação sugerida:</span> {action}
         </p>
         {renderVariation(mom)}
         {renderVariation(yoy)}

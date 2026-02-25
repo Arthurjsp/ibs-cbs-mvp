@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { TelemetryEventType } from "@prisma/client";
 import { AlertTriangle, ArrowRight, Calculator, FileSpreadsheet, FlaskConical } from "lucide-react";
 import { requireUser } from "@/lib/auth";
@@ -43,9 +43,9 @@ function actionToneClass(tone: ActionTone) {
 }
 
 function actionToneLabel(tone: ActionTone) {
-  if (tone === "attention") return "Atencao";
+  if (tone === "attention") return "Atenção";
   if (tone === "opportunity") return "Oportunidade";
-  return "Estavel";
+  return "Estável";
 }
 
 export default async function DashboardPage() {
@@ -149,8 +149,8 @@ export default async function DashboardPage() {
   if ((taxMom.deltaPct ?? 0) > 5) {
     actionPoints.push({
       tone: "attention",
-      title: "Carga tributaria em alta no mes",
-      detail: "A variacao MoM passou de 5%. Revise repasse de preco e mix por categoria/NCM."
+      title: "Carga tributária em alta no mês",
+      detail: "A variação MoM passou de 5%. Revise repasse de preço e mix por categoria/NCM."
     });
   }
 
@@ -158,23 +158,23 @@ export default async function DashboardPage() {
     actionPoints.push({
       tone: "attention",
       title: "Effective rate acima de 25%",
-      detail: "Priorize cenarios com transicao e repasse para proteger margem operacional."
+      detail: "Priorize cenários com transição e repasse para proteger margem operacional."
     });
   }
 
   if (current.simulations < 3) {
     actionPoints.push({
       tone: "opportunity",
-      title: "Baixa intensidade de simulacao",
-      detail: "Execute repasse 0%, 50% e 100% para reduzir incerteza de preco."
+      title: "Baixa intensidade de simulação",
+      detail: "Execute repasse 0%, 50% e 100% para reduzir incerteza de preço."
     });
   }
 
   if (actionPoints.length === 0) {
     actionPoints.push({
       tone: "stable",
-      title: "Indicadores estaveis no mes corrente",
-      detail: "Mantenha monitoramento por UF e categoria para antecipar mudancas."
+      title: "Indicadores estaveis no mês corrente",
+      detail: "Mantenha monitoramento por UF e categoria para antecipar mudanças."
     });
   }
 
@@ -187,7 +187,7 @@ export default async function DashboardPage() {
           Dashboard Executivo
         </h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela voce decide preco, margem e risco tributario com base nas simulacoes do periodo.
+          Nesta tela você decide preço, margem e risco tributário com base nas simulações do período.
         </p>
       </section>
 
@@ -195,62 +195,62 @@ export default async function DashboardPage() {
 
       <Card className="border-primary/25 bg-primary/5">
         <CardHeader>
-          <CardTitle>Resumo do mes ({currentMonthLabel})</CardTitle>
+          <CardTitle>Resumo do mês ({currentMonthLabel})</CardTitle>
           <CardDescription>
-            Todas as metricas sao estimativas para decisao gerencial. Nao substituem apuracao oficial.
+            Todas as métricas são estimativas para decisão gerencial. Não substituem apuração oficial.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
           <p>
-            <span className="font-medium text-foreground">Carga estimada:</span> soma de IBS + CBS + IS do mes.
+            <span className="font-medium text-foreground">Carga estimada:</span> soma de IBS + CBS + IS do mês.
           </p>
           <p>
-            <span className="font-medium text-foreground">MoM:</span> compara o mes atual com o mes anterior.
+            <span className="font-medium text-foreground">MoM:</span> compara o mês atual com o mês anterior.
           </p>
           <p>
-            <span className="font-medium text-foreground">YoY:</span> compara com o mesmo mes do ano anterior.
+            <span className="font-medium text-foreground">YoY:</span> compara com o mesmo mês do ano anterior.
           </p>
         </CardContent>
       </Card>
 
       <section className="grid gap-4 md:grid-cols-3" aria-label="Indicadores principais">
         <ExecutiveKpiCard
-          title="Carga tributaria estimada (mes)"
+          title="Carga tributária estimada (mês)"
           value={toCurrency(currentTax)}
-          whatIsIt="Total mensal de IBS/CBS/IS nas simulacoes do mes corrente."
-          whyItMatters="Mostra o tamanho do impacto tributario no caixa e na margem."
-          action="Se subir, revise repasse e mix antes de fechar preco."
-          tooltipExample="Se subir 8% no MoM, a margem pode cair se o repasse nao for ajustado."
+          whatIsIt="Total mensal de IBS/CBS/IS nas simulações do mês corrente."
+          whyItMatters="Mostra o tamanho do impacto tributário no caixa e na margem."
+          action="Se subir, revise repasse e mix antes de fechar preço."
+          tooltipExample="Se subir 8% no MoM, a margem pode cair se o repasse não for ajustado."
           mom={{ label: "MoM", value: taxMom.deltaPct, asPercent: true }}
           yoy={{ label: "YoY", value: taxYoy.deltaPct, asPercent: true }}
         />
         <ExecutiveKpiCard
-          title="Effective rate medio (mes)"
+          title="Effective rate medio (mês)"
           value={toShortPercent(current.effectiveRate * 100)}
-          whatIsIt="Carga efetiva media sobre a base tributavel simulada."
-          whyItMatters="Ajuda a comparar cenarios com bases diferentes de faturamento."
-          action="Se ficar alto, rode cenario com transicao e revise categorias mais sensiveis."
+          whatIsIt="Carga efetiva média sobre a base tributável simulada."
+          whyItMatters="Ajuda a comparar cenários com bases diferentes de faturamento."
+          action="Se ficar alto, rode cenário com transição e revise categorias mais sensíveis."
           tooltipExample="26% sobre R$ 1.000.000 implica cerca de R$ 260.000 de carga estimada."
           mom={{ label: "MoM (p.p.)", value: rateMom.delta, asPercent: false }}
           yoy={{ label: "YoY (p.p.)", value: rateYoy.delta, asPercent: false }}
         />
         <ExecutiveKpiCard
-          title="Simulacoes executadas (mes)"
+          title="Simulações executadas (mês)"
           value={String(current.simulations)}
-          whatIsIt="Quantidade de simulacoes finalizadas no mes."
-          whyItMatters="Mais simulacoes aumentam previsibilidade antes da decisao comercial."
-          action="Objetivo minimo: 3 cenarios por documento (0%, 50% e 100% de repasse)."
-          tooltipExample="Comparar 3 variacoes de repasse reduz risco de decidir preco sem cobertura."
+          whatIsIt="Quantidade de simulações finalizadas no mês."
+          whyItMatters="Mais simulações aumentam previsibilidade antes da decisão comercial."
+          action="Objetivo mínimo: 3 cenários por documento (0%, 50% e 100% de repasse)."
+          tooltipExample="Comparar 3 variações de repasse reduz o risco de decidir preço sem cobertura."
           mom={{ label: "MoM", value: simMom.deltaPct, asPercent: true, positiveIsGood: true }}
           yoy={{ label: "YoY", value: simYoy.deltaPct, asPercent: true, positiveIsGood: true }}
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]" aria-label="Plano de acao e atalhos">
+      <section className="grid gap-4 lg:grid-cols-[2fr_1fr]" aria-label="Plano de ação e atalhos">
         <Card>
           <CardHeader>
-            <CardTitle>Plano de acao recomendado</CardTitle>
-            <CardDescription>Leitura pratica para reduzir risco financeiro nas proximas decisoes.</CardDescription>
+            <CardTitle>Plano de ação recomendado</CardTitle>
+            <CardDescription>Leitura prática para reduzir risco financeiro nas próximas decisões.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {actionPoints.map((point) => (
@@ -268,8 +268,8 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Proximas acoes no sistema</CardTitle>
-            <CardDescription>Atalhos para sair da analise e executar.</CardDescription>
+            <CardTitle>Próximas ações no sistema</CardTitle>
+            <CardDescription>Atalhos para sair da análise e executar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Link
@@ -286,22 +286,22 @@ export default async function DashboardPage() {
             <Link
               href="/scenarios"
               className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-muted"
-              aria-label="Ir para criacao de cenario estrategico"
+              aria-label="Ir para criação de cenário estratégico"
             >
               <span className="flex items-center gap-2">
                 <FlaskConical className="h-4 w-4" aria-hidden="true" />
-                Criar cenario estrategico
+                Criar cenário estratégico
               </span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
               href="/reports"
               className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-muted"
-              aria-label="Ir para exportacao de relatorio gerencial"
+              aria-label="Ir para exportação de relatório gerencial"
             >
               <span className="flex items-center gap-2">
                 <Calculator className="h-4 w-4" aria-hidden="true" />
-                Exportar relatorio gerencial
+                Exportar relatório gerencial
               </span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
@@ -337,7 +337,7 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Simulacoes totais</CardDescription>
+            <CardDescription>Simulações totais</CardDescription>
             <CardTitle>{totals.simulations}</CardTitle>
           </CardHeader>
         </Card>
@@ -345,34 +345,34 @@ export default async function DashboardPage() {
 
       <MonthlyChart data={monthlyData} />
 
-      <section className="grid gap-4 lg:grid-cols-2" aria-label="Operacao e governanca">
+      <section className="grid gap-4 lg:grid-cols-2" aria-label="Operação e governança">
         <Card>
           <CardHeader>
-            <CardTitle>Metricas de uso (ultimos 30 dias)</CardTitle>
-            <CardDescription>Telemetria operacional para acompanhar adocao do tenant.</CardDescription>
+            <CardTitle>Métricas de uso (últimos 30 dias)</CardTitle>
+            <CardDescription>Telemetria operacional para acompanhar adoção do tenant.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="grid gap-2 text-sm md:grid-cols-2">
               <li>Uploads XML: {telemetryByType.get("DOCUMENT_UPLOADED") ?? 0}</li>
-              <li>Calculos executados: {telemetryByType.get("CALCULATION_EXECUTED") ?? 0}</li>
-              <li>Cenarios aplicados: {telemetryByType.get("SCENARIO_APPLIED") ?? 0}</li>
+              <li>Cálculos executados: {telemetryByType.get("CALCULATION_EXECUTED") ?? 0}</li>
+              <li>Cenários aplicados: {telemetryByType.get("SCENARIO_APPLIED") ?? 0}</li>
               <li>Exports CSV: {telemetryByType.get("EXPORT_CSV") ?? 0}</li>
               <li>Exports XLSX: {telemetryByType.get("EXPORT_XLSX") ?? 0}</li>
-              <li>Previas importadas: {telemetryByType.get("ASSISTED_ASSESSMENT_IMPORTED") ?? 0}</li>
-              <li>Divergencias justificadas: {telemetryByType.get("DIVERGENCE_JUSTIFIED") ?? 0}</li>
+              <li>Prévias importadas: {telemetryByType.get("ASSISTED_ASSESSMENT_IMPORTED") ?? 0}</li>
+              <li>Divergências justificadas: {telemetryByType.get("DIVERGENCE_JUSTIFIED") ?? 0}</li>
             </ul>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Creditos simulados e apuracao assistida</CardTitle>
-            <CardDescription>Controle de evidencia para disponibilidade de credito e divergencias.</CardDescription>
+            <CardTitle>Créditos simulados e apuração assistida</CardTitle>
+            <CardDescription>Controle de evidência para disponibilidade de crédito e divergências.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="grid gap-2 md:grid-cols-2">
-              <p>Pendente de extincao: {toCurrency(creditStatusMap.get("PENDING_EXTINCTION") ?? 0)}</p>
-              <p>Disponivel: {toCurrency(creditStatusMap.get("AVAILABLE") ?? 0)}</p>
+              <p>Pendente de extinção: {toCurrency(creditStatusMap.get("PENDING_EXTINCTION") ?? 0)}</p>
+              <p>Disponível: {toCurrency(creditStatusMap.get("AVAILABLE") ?? 0)}</p>
               <p>Consumido: {toCurrency(creditStatusMap.get("CONSUMED") ?? 0)}</p>
               <p>Bloqueado: {toCurrency(creditStatusMap.get("BLOCKED") ?? 0)}</p>
             </div>

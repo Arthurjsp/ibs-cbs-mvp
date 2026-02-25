@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { usePathname } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
@@ -16,8 +16,8 @@ export function HeaderShell({ email }: { email?: string | null }) {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-muted-foreground md:inline" aria-label="Usuario autenticado">
-            {email ?? "Sem usuario"}
+          <span className="hidden text-sm text-muted-foreground md:inline" aria-label="Usuário autenticado">
+            {email ?? "Sem usuário"}
           </span>
           <SignOutButton />
         </div>

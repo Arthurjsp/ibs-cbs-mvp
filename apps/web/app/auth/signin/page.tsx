@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -29,7 +29,7 @@ export default function SignInPage() {
     setLoading(false);
 
     if (result?.error) {
-      setError("Credenciais invalidas. Rode o seed e use admin@demo.local.");
+      setError("Credenciais inválidas. Rode o seed e use admin@demo.local.");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function SignInPage() {
         <CardHeader>
           <CardTitle>Entrar</CardTitle>
           <CardDescription>
-            Acesse o simulador IBS/CBS. Esta plataforma entrega estimativas para decisao gerencial.
+            Acesse o simulador IBS/CBS. Esta plataforma entrega estimativas para decisão gerencial.
           </CardDescription>
         </CardHeader>
         <CardContent>

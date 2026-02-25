@@ -22,7 +22,7 @@ describe("document run confidence", () => {
             },
             ibs: {
               creditEligible: true,
-              audit: [{ matched: true, description: "Regra padrao" }]
+              audit: [{ matched: true, description: "Regra padrão" }]
             }
           }
         }
@@ -46,7 +46,7 @@ describe("document run confidence", () => {
               }
             },
             ibs: {
-              audit: [{ matched: false, description: "Regra padrao" }]
+              audit: [{ matched: false, description: "Regra padrão" }]
             }
           }
         }
@@ -55,6 +55,6 @@ describe("document run confidence", () => {
 
     expect(result.score).toBeLessThan(60);
     expect(result.level).toBe("BAIXA");
-    expect(result.highlights.some((line) => line.includes("limitacao"))).toBe(true);
+    expect(result.highlights.some((line) => line.includes("limitação"))).toBe(true);
   });
 });

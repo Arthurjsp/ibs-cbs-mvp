@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ export default async function DocumentsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Documentos</h1>
           <p className="text-sm text-muted-foreground">
-            Aqui voce escolhe qual NF-e analisar. Cada documento pode ter varios runs de simulacao.
+            Aqui você escolhe qual NF-e analisar. Cada documento pode ter vários runs de simulação.
           </p>
         </div>
         <Link href="/documents/upload" className={buttonVariants()}>
@@ -40,11 +40,11 @@ export default async function DocumentsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Chave</TableHead>
-                <TableHead>Emissao</TableHead>
+                <TableHead>Emissão</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Itens</TableHead>
                 <TableHead>Runs</TableHead>
-                <TableHead>Acao</TableHead>
+                <TableHead>Ação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { FieldHelp } from "@/components/ui/field-help";
@@ -27,8 +27,8 @@ export function ScenarioFormFields() {
         <FieldHelp
           htmlFor="name"
           label="Nome"
-          tooltip="Nome interno do cenario para voce identificar simulacoes (ex.: 'Transicao 30% + repasse 50%')."
-          microcopy="Dica: use um padrao como 'Ano/Transicao + Repasse'."
+          tooltip="Nome interno do cenário para você identificar simulações (ex.: 'Transição 30% + repasse 50%')."
+          microcopy="Dica: use um padrão como 'Ano/Transição + Repasse'."
           microcopyId="name-help"
           iconAriaLabel="Ajuda sobre o campo Nome"
         />
@@ -39,7 +39,7 @@ export function ScenarioFormFields() {
         <FieldHelp
           htmlFor="transitionFactor"
           label="Transition factor (0-1)"
-          tooltip="Percentual da transicao para o novo regime (IBS/CBS). 0 = 100% regime atual (ICMS/ISS). 1 = 100% IBS/CBS. Valores intermediarios simulam a fase de transicao."
+          tooltip="Percentual da transição para o novo regime (IBS/CBS). 0 = 100% regime atual (ICMS/ISS). 1 = 100% IBS/CBS. Valores intermediarios simulam a fase de transição."
           microcopy="Ex.: 0.3 = 30% IBS/CBS e 70% ICMS/ISS."
           microcopyId="transition-factor-help"
           iconAriaLabel="Ajuda sobre o campo Transition factor"
@@ -52,7 +52,7 @@ export function ScenarioFormFields() {
           value={transitionFactorNumber}
           onChange={(event) => setTransitionFactor(event.target.value)}
           className="h-2 w-full cursor-pointer accent-primary"
-          aria-label="Controle deslizante de transicao"
+          aria-label="Controle deslizante de transição"
           aria-describedby="transition-factor-help transition-factor-live"
         />
         <p id="transition-factor-live" className="text-xs text-muted-foreground" aria-live="polite">
@@ -76,8 +76,8 @@ export function ScenarioFormFields() {
         <FieldHelp
           htmlFor="pricePassThroughPercent"
           label="Repasse (%)"
-          tooltip="Percentual do impacto tributario que sera repassado ao preco. 0% = empresa absorve tudo. 100% = repasse total ao cliente."
-          microcopy="Ex.: 50% = metade do impacto vai para o preco."
+          tooltip="Percentual do impacto tributário que será repassado ao preço. 0% = empresa absorve tudo. 100% = repasse total ao cliente."
+          microcopy="Ex.: 50% = metade do impacto vai para o preço."
           microcopyId="repasse-help"
           iconAriaLabel="Ajuda sobre o campo Repasse"
         />
@@ -93,7 +93,7 @@ export function ScenarioFormFields() {
           aria-describedby="repasse-help repasse-live"
         />
         <p id="repasse-live" className="text-xs text-muted-foreground" aria-live="polite">
-          Valor atual: {passThroughNumber.toFixed(0)}% de repasse do impacto tributario.
+          Valor atual: {passThroughNumber.toFixed(0)}% de repasse do impacto tributário.
         </p>
         <Input
           id="pricePassThroughPercent"
@@ -113,8 +113,8 @@ export function ScenarioFormFields() {
         <FieldHelp
           htmlFor="overrideIbsRate"
           label="Override IBS (opcional)"
-          tooltip="Forca uma aliquota de IBS diferente da regra padrao, apenas para simulacao."
-          microcopy="Use numero decimal (ex.: 0.17 para 17%). Deixe vazio para usar a regra."
+          tooltip="Força uma alíquota de IBS diferente da regra padrão, apenas para simulação."
+          microcopy="Use número decimal (ex.: 0.17 para 17%). Deixe vazio para usar a regra."
           microcopyId="override-ibs-help"
           iconAriaLabel="Ajuda sobre o campo Override IBS"
         />
@@ -132,8 +132,8 @@ export function ScenarioFormFields() {
         <FieldHelp
           htmlFor="overrideCbsRate"
           label="Override CBS (opcional)"
-          tooltip="Forca uma aliquota de CBS diferente da regra padrao, apenas para simulacao."
-          microcopy="Use numero decimal (ex.: 0.09 para 9%). Deixe vazio para usar a regra."
+          tooltip="Força uma alíquota de CBS diferente da regra padrão, apenas para simulação."
+          microcopy="Use número decimal (ex.: 0.09 para 9%). Deixe vazio para usar a regra."
           microcopyId="override-cbs-help"
           iconAriaLabel="Ajuda sobre o campo Override CBS"
         />
@@ -148,13 +148,13 @@ export function ScenarioFormFields() {
       </div>
 
       <div className="rounded-md border bg-muted/40 p-3 md:col-span-3">
-        <p className="text-sm font-medium">Preview rapido do cenario</p>
+        <p className="text-sm font-medium">Preview rápido do cenário</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Transicao configurada: {(transitionFactorNumber * 100).toFixed(0)}% IBS/CBS e {(legacyShareNumber * 100).toFixed(0)}%
+          Transição configurada: {(transitionFactorNumber * 100).toFixed(0)}% IBS/CBS e {(legacyShareNumber * 100).toFixed(0)}%
           regime legado.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Repasse configurado: {passThroughNumber.toFixed(0)}% do impacto tributario para preco.
+          Repasse configurado: {passThroughNumber.toFixed(0)}% do impacto tributário para preço.
         </p>
       </div>
     </>

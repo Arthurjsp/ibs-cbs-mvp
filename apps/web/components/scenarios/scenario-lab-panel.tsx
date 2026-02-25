@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -28,7 +28,7 @@ function deltaTone(value: number | null) {
 
 function deltaLabel(value: number | null, higherIsRisk: boolean) {
   if (value == null) return "Sem base";
-  if (value === 0) return "Sem variacao";
+  if (value === 0) return "Sem variação";
 
   if (value > 0) {
     return higherIsRisk ? "Acima da baseline (piora)" : "Acima da baseline (melhora)";
@@ -54,7 +54,7 @@ function ScenarioImpactCard({ row }: { row: ScenarioLabRowSnapshot }) {
           <CardDescription>Sem run associado ainda.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Execute um calculo com este cenario em um documento para habilitar comparacao.
+          Execute um cálculo com este cenário em um documento para habilitar comparação.
         </CardContent>
       </Card>
     );
@@ -75,15 +75,15 @@ function ScenarioImpactCard({ row }: { row: ScenarioLabRowSnapshot }) {
           Delta de tributo: {formatCurrency(row.impact.taxDelta)} ({deltaLabel(row.impact.taxDelta, true)})
         </p>
         <p className={deltaTone(row.impact.priceImpact)}>
-          Impacto no preco: {formatCurrency(row.impact.priceImpact)} ({deltaLabel(row.impact.priceImpact, true)})
+          Impacto no preço: {formatCurrency(row.impact.priceImpact)} ({deltaLabel(row.impact.priceImpact, true)})
         </p>
-        <p>Resultado liquido estimado: {formatCurrency(row.impact.estimatedNetResult)}</p>
+        <p>Resultado líquido estimado: {formatCurrency(row.impact.estimatedNetResult)}</p>
         <p>Margem estimada: {formatPercent(row.impact.marginPct)}</p>
         <p className={deltaTone(row.impact.marginDeltaPp)}>
           Delta margem (p.p.): {formatPercent(row.impact.marginDeltaPp)} ({deltaLabel(row.impact.marginDeltaPp, false)})
         </p>
         <p className="pt-1 text-xs text-muted-foreground">
-          Parametros: transicao {(row.params.transitionFactor * 100).toFixed(0)}% | repasse{" "}
+          Parâmetros: transição {(row.params.transitionFactor * 100).toFixed(0)}% | repasse{" "}
           {row.params.pricePassThroughPercent.toFixed(0)}%
         </p>
       </CardContent>
@@ -126,26 +126,26 @@ export function ScenarioLabPanel({ data }: { data: ScenarioLabData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Scenario Lab: comparacao lado a lado</CardTitle>
+        <CardTitle>Scenario Lab: comparação lado a lado</CardTitle>
         <CardDescription>
-          Compare ate 3 cenarios com baseline para entender impacto em tributo, preco e resultado liquido estimado.
+          Compare até 3 cenários com baseline para entender impacto em tributo, preço e resultado líquido estimado.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-md border bg-muted/40 p-3 text-sm">
-          <p className="font-medium">Baseline de referencia</p>
+          <p className="font-medium">Baseline de referência</p>
           {data.baseline ? (
             <p className="text-muted-foreground">
               Documento {data.baseline.documentKey} | tributo final {formatCurrency(data.baseline.taxTotal)} | effective rate{" "}
               {(data.baseline.effectiveRate * 100).toFixed(2)}%
             </p>
           ) : (
-            <p className="text-muted-foreground">Sem baseline disponivel. Execute um calculo sem cenario para habilitar comparacao.</p>
+            <p className="text-muted-foreground">Sem baseline disponível. Execute um cálculo sem cenário para habilitar comparação.</p>
           )}
         </div>
 
         {rowsWithRuns.length > 0 ? (
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Selecao de cenarios para comparacao">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Seleção de cenários para comparação">
             {rowsWithRuns.map((row) => {
               const active = selectedIds.includes(row.scenarioId);
               return (
@@ -166,7 +166,7 @@ export function ScenarioLabPanel({ data }: { data: ScenarioLabData }) {
           </div>
         ) : (
           <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-            Nenhum cenario com run encontrado. Execute calculos nos documentos para gerar comparacao.
+            Nenhum cenário com run encontrado. Execute cálculos nos documentos para gerar comparação.
           </div>
         )}
 
@@ -180,7 +180,7 @@ export function ScenarioLabPanel({ data }: { data: ScenarioLabData }) {
 
             <div className="h-80 rounded-md border bg-card p-3">
               <p id="scenario-lab-chart-title" className="mb-2 text-sm font-medium">
-                Impacto tributario, repasse e resultado por cenario
+                Impacto tributário, repasse e resultado por cenário
               </p>
               <p className="mb-2 text-xs text-muted-foreground">
                 Cada barra tem legenda textual. Use os cards acima para interpretar melhora/piora sem depender de cor.
@@ -195,20 +195,20 @@ export function ScenarioLabPanel({ data }: { data: ScenarioLabData }) {
                     <Tooltip formatter={(value) => currencyFormatter.format(Number(value))} />
                     <Legend />
                     <Bar dataKey="tributo" fill="#b6471e" name="Tributo final" />
-                    <Bar dataKey="impactoPreco" fill="#2f7369" name="Impacto no preco" />
-                    <Bar dataKey="resultadoLiquido" fill="#3f3a92" name="Resultado liquido" />
+                    <Bar dataKey="impactoPreco" fill="#2f7369" name="Impacto no preço" />
+                    <Bar dataKey="resultadoLiquido" fill="#3f3a92" name="Resultado líquido" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
               <table className="sr-only" aria-labelledby="scenario-lab-chart-title">
-                <caption>Comparativo textual dos cenarios selecionados</caption>
+                <caption>Comparativo textual dos cenários selecionados</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Cenario</th>
+                    <th scope="col">Cenário</th>
                     <th scope="col">Tributo final</th>
-                    <th scope="col">Impacto no preco</th>
-                    <th scope="col">Resultado liquido</th>
+                    <th scope="col">Impacto no preço</th>
+                    <th scope="col">Resultado líquido</th>
                   </tr>
                 </thead>
                 <tbody>

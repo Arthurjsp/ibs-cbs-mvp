@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -64,11 +64,11 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
   const localValidationError = useMemo(() => {
     if (!file) return null;
     const name = file.name.toLowerCase();
-    if (!name.endsWith(".xml")) return "O arquivo precisa ter extensao .xml.";
+    if (!name.endsWith(".xml")) return "O arquivo precisa ter extensão .xml.";
     if (file.size > MAX_NFE_XML_SIZE_BYTES) {
       return `O arquivo excede o limite de ${formatSize(MAX_NFE_XML_SIZE_BYTES)}.`;
     }
-    if (file.size === 0) return "O arquivo esta vazio.";
+    if (file.size === 0) return "O arquivo está vazio.";
     return null;
   }, [file]);
 
@@ -118,19 +118,19 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
       router.refresh();
     } catch {
       setLoading(false);
-      setError("Falha de conexao ao enviar o XML.");
-      setDetails(["Verifique sua conexao e tente novamente."]);
+      setError("Falha de conexão ao enviar o XML.");
+      setDetails(["Verifique sua conexão e tente novamente."]);
     }
   }
 
   return (
     <div className="space-y-5">
       <div className="rounded-md border bg-muted/40 p-4">
-        <p className="text-sm font-medium">Fluxo guiado de importacao</p>
+        <p className="text-sm font-medium">Fluxo guiado de importação</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Acompanhe as etapas abaixo para concluir o upload e seguir para o calculo em poucos minutos.
+          Acompanhe as etapas abaixo para concluir o upload e seguir para o cálculo em poucos minutos.
         </p>
-        <ol className="mt-3 space-y-2" aria-label="Etapas de upload e validacao">
+        <ol className="mt-3 space-y-2" aria-label="Etapas de upload e validação">
           {steps.map((step, index) => (
             <UploadStepRow key={step.id} step={step} index={index} />
           ))}
@@ -154,7 +154,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
             ))}
           </select>
           <p id="company-help" className="text-xs text-muted-foreground">
-            O documento sera vinculado a esta empresa dentro do tenant ativo.
+            O documento será vinculado a esta empresa dentro do tenant ativo.
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
 
         {localValidationError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert" aria-live="assertive">
-            <p className="font-medium text-destructive">Validacao local: {localValidationError}</p>
+            <p className="font-medium text-destructive">Validação local: {localValidationError}</p>
           </div>
         ) : null}
 

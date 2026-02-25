@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { hasLegacyUfConfigForDocument, isLegacyUfConfigApplicable } from "../lib/legacy/uf-config";
 
 describe("legacy uf config guard", () => {
-  it("detecta config aplicavel por UF origem/destino e vigencia", () => {
+  it("detecta config aplicável por UF origem/destino e vigência", () => {
     const applicable = isLegacyUfConfigApplicable({
       config: {
         emitterUf: "SP",
@@ -18,7 +18,7 @@ describe("legacy uf config guard", () => {
     expect(applicable).toBe(true);
   });
 
-  it("retorna false quando nao existe config para o par de UFs", () => {
+  it("retorna false quando não existe config para o par de UFs", () => {
     const hasConfig = hasLegacyUfConfigForDocument({
       configs: [
         {

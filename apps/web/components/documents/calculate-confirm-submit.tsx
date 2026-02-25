@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ interface Props {
 export function CalculateConfirmSubmit({ formId, scenarioSelectId }: Props) {
   const [open, setOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [scenarioLabel, setScenarioLabel] = useState("Sem cenario (baseline)");
+  const [scenarioLabel, setScenarioLabel] = useState("Sem cenário (baseline)");
 
   const dialogTitleId = useId();
   const dialogDescriptionId = useId();
@@ -19,7 +19,7 @@ export function CalculateConfirmSubmit({ formId, scenarioSelectId }: Props) {
 
   function handleOpen() {
     const select = document.getElementById(scenarioSelectId) as HTMLSelectElement | null;
-    const selectedText = select?.options[select.selectedIndex]?.text ?? "Sem cenario (baseline)";
+    const selectedText = select?.options[select.selectedIndex]?.text ?? "Sem cenário (baseline)";
     setScenarioLabel(selectedText);
     setConfirmed(false);
     setOpen(true);
@@ -72,18 +72,18 @@ export function CalculateConfirmSubmit({ formId, scenarioSelectId }: Props) {
             className="relative z-10 w-full max-w-xl rounded-xl border bg-card p-5 shadow-sm"
           >
             <p id={dialogTitleId} className="text-lg font-semibold">
-              Confirmar simulacao
+              Confirmar simulação
             </p>
             <p id={dialogDescriptionId} className="mt-2 text-sm text-muted-foreground">
-              Voce esta prestes a executar um calculo estimado IBS/CBS/IS. Este fluxo e para planejamento gerencial e nao
-              substitui apuracao oficial.
+              Você está prestes a executar um cálculo estimado IBS/CBS/IS. Este fluxo é para planejamento gerencial e não
+              substitui apuração oficial.
             </p>
 
             <div className="mt-4 rounded-md border bg-muted/50 p-3 text-sm">
               <p>
-                Cenario selecionado: <span className="font-medium">{scenarioLabel}</span>
+                Cenário selecionado: <span className="font-medium">{scenarioLabel}</span>
               </p>
-              <p className="mt-1">A trilha de auditoria sera registrada no resultado.</p>
+              <p className="mt-1">A trilha de auditoria será registrada no resultado.</p>
             </div>
 
             <label className="mt-4 flex items-start gap-2 text-sm">
@@ -94,7 +94,7 @@ export function CalculateConfirmSubmit({ formId, scenarioSelectId }: Props) {
                 checked={confirmed}
                 onChange={(event) => setConfirmed(event.target.checked)}
               />
-              <span>Entendo que este resultado e uma estimativa e nao uma apuracao fiscal oficial.</span>
+              <span>Entendo que este resultado é uma estimativa e não uma apuração fiscal oficial.</span>
             </label>
 
             <div className="mt-5 flex justify-end gap-2">

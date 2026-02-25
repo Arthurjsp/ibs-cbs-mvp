@@ -2,16 +2,16 @@
 
 ## Objetivo
 
-Evoluir o MVP para uma leitura mais executiva (CFO/Controller) e instrumentar eventos de uso para produto e operacao.
+Evoluir o MVP para uma leitura mais executiva (CFO/Controller) e instrumentar eventos de uso para produto e operação.
 
 ## Entregas
 
 ### Dashboard executivo
 
-- Cards executivos com variacao `MoM` e `YoY`.
-- Texto orientativo de interpretacao de metricas.
-- Tooltip com exemplo de impacto financeiro por metrica.
-- Painel de uso (ultimos 30 dias) com contagem de eventos de telemetria.
+- Cards executivos com variação `MoM` e `YoY`.
+- Texto orientativo de interpretação de métricas.
+- Tooltip com exemplo de impacto financeiro por métrica.
+- Painel de uso (últimos 30 dias) com contagem de eventos de telemetria.
 
 Arquivos principais:
 
@@ -39,7 +39,7 @@ Arquivos principais:
 Integração de eventos nas rotas/servicos:
 
 - Upload: `apps/web/app/api/documents/upload/route.ts`
-- Calculo: `apps/web/lib/calc-service.ts`
+- Cálculo: `apps/web/lib/calc-service.ts`
 - Export CSV: `apps/web/app/api/reports/csv/route.ts`
 - Export XLSX: `apps/web/app/api/reports/xlsx/route.ts`
 
@@ -55,9 +55,9 @@ Arquivos:
 - `prisma/schema.prisma`
 - `prisma/migrations/0002_telemetry_events/migration.sql`
 
-## Observabilidade minima
+## Observabilidade mínima
 
-- Persistencia de eventos no banco (consulta por tenant/tipo/periodo).
+- Persistência de eventos no banco (consulta por tenant/tipo/período).
 - Log estruturado em `console.info` para cada evento.
 - Captura opcional no Sentry quando `SENTRY_DSN` estiver configurado.
 
@@ -73,4 +73,3 @@ Comando:
 ```bash
 corepack pnpm test
 ```
-

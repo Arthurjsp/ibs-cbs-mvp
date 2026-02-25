@@ -1,16 +1,16 @@
-# Fase 3 - Feedback e Confianca das Simulacoes
+# Fase 3 - Feedback e Confiança das Simulações
 
 ## Objetivo
 
-Melhorar clareza para usuario CFO/Controller sobre limites da simulacao e aumentar confianca na leitura de metricas.
+Melhorar clareza para usuário CFO/Controller sobre limites da simulação e aumentar confiança na leitura de métricas.
 
 ## Entregas
 
 1. Amarras visuais de estimativa
 - Banner em telas principais indicando:
-  - resultado estimativo para decisao gerencial
-  - nao substitui apuracao oficial
-  - link para documentacao da engine
+  - resultado estimativo para decisão gerencial
+  - não substitui apuração oficial
+  - link para documentação da engine
 
 Arquivos:
 - `apps/web/components/trust/estimation-banner.tsx`
@@ -19,23 +19,23 @@ Arquivos:
 - `apps/web/app/documents/[id]/page.tsx`
 
 2. Legenda de effective rate
-- Explicacao com formula e exemplo financeiro.
+- Explicação com fórmula e exemplo financeiro.
 - Exibida em dashboard, reports e detalhe de documento.
 
 Arquivo principal:
 - `apps/web/lib/trust/effective-rate.ts`
 
-3. Modal de confirmacao antes do calculo
-- Antes de executar calculo em documento:
+3. Modal de confirmação antes do cálculo
+- Antes de executar cálculo em documento:
   - mostra aviso de estimativa
-  - mostra cenario selecionado
-  - exige confirmacao explicita via checkbox
+  - mostra cenário selecionado
+  - exige confirmação explícita via checkbox
 
 Arquivos:
 - `apps/web/components/documents/calculate-confirm-submit.tsx`
 - `apps/web/app/documents/[id]/page.tsx`
 
-4. Pagina de documentacao da engine
+4. Pagina de documentação da engine
 - Rota: `/docs/engine`
 - Resumo operacional das regras e do conceito de effective rate.
 
@@ -47,6 +47,5 @@ Arquivo:
 - `apps/web/test/effective-rate.test.ts`
 
 Cobertura:
-- formatacao de moeda/percentual
+- formatação de moeda/percentual
 - mensagem com exemplo de carga estimada
-

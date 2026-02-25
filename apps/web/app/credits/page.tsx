@@ -1,4 +1,4 @@
-﻿import { CreditLedgerStatus, TaxType } from "@prisma/client";
+import { CreditLedgerStatus, TaxType } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,8 @@ function toMoney(value: number) {
 }
 
 function formatStatus(status: CreditLedgerStatus) {
-  if (status === "PENDING_EXTINCTION") return "Pendente de extincao do debito";
-  if (status === "AVAILABLE") return "Disponivel";
+  if (status === "PENDING_EXTINCTION") return "Pendente de extinção do debito";
+  if (status === "AVAILABLE") return "Disponível";
   if (status === "CONSUMED") return "Consumido";
   return "Bloqueado";
 }
@@ -59,9 +59,9 @@ export default async function CreditsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Gestao de creditos IBS/CBS/IS</h1>
+        <h1 className="text-2xl font-semibold">Gestao de créditos IBS/CBS/IS</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela voce acompanha quanto credito foi gerado, liberado, consumido ou bloqueado.
+          Nesta tela você acompanha quanto crédito foi gerado, liberado, consumido ou bloqueado.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default async function CreditsPage() {
         </Card>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4" aria-label="Totais por status de credito">
+      <section className="grid gap-4 md:grid-cols-4" aria-label="Totais por status de crédito">
         <Card>
           <CardHeader>
             <CardDescription>Pendente</CardDescription>
@@ -95,7 +95,7 @@ export default async function CreditsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Disponivel</CardDescription>
+            <CardDescription>Disponível</CardDescription>
             <CardTitle>{toMoney(sumByStatus.get("AVAILABLE") ?? 0)}</CardTitle>
           </CardHeader>
         </Card>
@@ -116,11 +116,11 @@ export default async function CreditsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Entradas recentes</CardTitle>
-          <CardDescription>Ultimas 100 entradas geradas pelos calculos do simulador.</CardDescription>
+          <CardDescription>Ultimas 100 entradas geradas pelos cálculos do simulador.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Tabela de creditos por documento com evento mais recente</caption>
+            <caption className="sr-only">Tabela de créditos por documento com evento mais recente</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>

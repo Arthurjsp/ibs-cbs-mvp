@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useId, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -152,7 +152,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
   const tabTitle = useMemo(() => {
     if (activeTab === "legacy") return "Legado (ICMS/ISS)";
     if (activeTab === "ibs") return "IBS/CBS/IS";
-    return "Transicao (Final)";
+    return "Transição (Final)";
   }, [activeTab]);
 
   const tabPanelId = (key: TabKey) => `${tabsBaseId}-panel-${key}`;
@@ -195,7 +195,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
             className={`rounded-md border px-3 py-1 text-sm ${activeTab === "transition" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setActiveTab("transition")}
           >
-            Transicao (Final)
+            Transição (Final)
           </button>
         </div>
 
@@ -206,7 +206,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
             {(summary.weights?.ibs ?? 0) * 100}%
           </p>
           <p>
-            Totais transicao: legado ponderado {toMoney(summary.weightedLegacyTaxTotal)} | IBS ponderado{" "}
+            Totais transição: legado ponderado {toMoney(summary.weightedLegacyTaxTotal)} | IBS ponderado{" "}
             {toMoney(summary.weightedIbsTaxTotal)} | final {toMoney(summary.transitionTaxTotal)}
           </p>
         </div>
@@ -220,16 +220,16 @@ export function RunResultsTabs({ rows, summary }: Props) {
           hidden={activeTab !== "legacy"}
         >
           <Table>
-            <caption className="sr-only">Tabela de calculo legado por item</caption>
+            <caption className="sr-only">Tabela de cálculo legado por item</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
-                <TableHead>Descricao</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead>NCM</TableHead>
                 <TableHead>Base</TableHead>
                 <TableHead>ICMS proprio</TableHead>
                 <TableHead>DIFAL</TableHead>
-                <TableHead>ST basica</TableHead>
+                <TableHead>ST básica</TableHead>
                 <TableHead>ISS</TableHead>
                 <TableHead>Total legado</TableHead>
                 <TableHead>Unsupported</TableHead>
@@ -252,7 +252,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   </TableCell>
                   <TableCell>{toMoney(row.legacy?.issValue)}</TableCell>
                   <TableCell>{toMoney(row.legacy?.totalTax)}</TableCell>
-                  <TableCell>{row.legacy?.unsupported ? `Sim (${row.legacy.unsupportedReasons.join(", ") || "sem detalhe"})` : "Nao"}</TableCell>
+                  <TableCell>{row.legacy?.unsupported ? `Sim (${row.legacy.unsupportedReasons.join(", ") || "sem detalhe"})` : "Não"}</TableCell>
                   <TableCell>
                     <AuditTrailCell audit={row.audit} perspective="legacy" />
                   </TableCell>
@@ -268,13 +268,13 @@ export function RunResultsTabs({ rows, summary }: Props) {
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
-                <TableHead>Descricao</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead>NCM</TableHead>
                 <TableHead>Base</TableHead>
                 <TableHead>IBS</TableHead>
                 <TableHead>CBS</TableHead>
                 <TableHead>IS</TableHead>
-                <TableHead>Credito</TableHead>
+                <TableHead>Crédito</TableHead>
                 <TableHead>Auditoria</TableHead>
               </TableRow>
             </TableHeader>
@@ -288,7 +288,7 @@ export function RunResultsTabs({ rows, summary }: Props) {
                   <TableCell>{row.ibs ? `${toRate(row.ibs.ibsRate)} (${toMoney(row.ibs.ibsValue)})` : "-"}</TableCell>
                   <TableCell>{row.ibs ? `${toRate(row.ibs.cbsRate)} (${toMoney(row.ibs.cbsValue)})` : "-"}</TableCell>
                   <TableCell>{row.ibs ? `${toRate(row.ibs.isRate)} (${toMoney(row.ibs.isValue)})` : "-"}</TableCell>
-                  <TableCell>{row.ibs?.creditEligible ? "Sim" : "Nao"}</TableCell>
+                  <TableCell>{row.ibs?.creditEligible ? "Sim" : "Não"}</TableCell>
                   <TableCell>
                     <AuditTrailCell audit={row.audit} perspective="ibs" />
                   </TableCell>
@@ -305,16 +305,16 @@ export function RunResultsTabs({ rows, summary }: Props) {
           hidden={activeTab !== "transition"}
         >
           <Table>
-            <caption className="sr-only">Tabela de transicao final por item</caption>
+            <caption className="sr-only">Tabela de transição final por item</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Linha</TableHead>
-                <TableHead>Descricao</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead>NCM</TableHead>
                 <TableHead>Base</TableHead>
                 <TableHead>Legado</TableHead>
                 <TableHead>IBS/CBS/IS</TableHead>
-                <TableHead>Ponderacao</TableHead>
+                <TableHead>Ponderação</TableHead>
                 <TableHead>Total final</TableHead>
                 <TableHead>Effective rate</TableHead>
                 <TableHead>Auditoria</TableHead>

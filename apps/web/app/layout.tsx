@@ -7,7 +7,7 @@ import { HeaderShell } from "@/components/header-shell";
 
 export const metadata = {
   title: "Tax Transition OS - MVP",
-  description: "Simulador estrategico de transicao IBS/CBS para decisao financeira e operacional."
+  description: "Simulador estratégico de transição IBS/CBS para decisão financeira e operacional."
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

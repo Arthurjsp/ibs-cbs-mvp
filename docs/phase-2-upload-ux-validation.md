@@ -1,18 +1,18 @@
-# Fase 2 - Upload Guiado e Validacao de XML
+# Fase 2 - Upload Guiado e Validação de XML
 
 ## Objetivo
 
-Melhorar a experiencia de onboarding no upload de NF-e e tornar as mensagens de erro compreensiveis para time financeiro/fiscal.
+Melhorar a experiência de onboarding no upload de NF-e e tornar as mensagens de erro compreensíveis para time financeiro/fiscal.
 
 ## Entregas
 
 1. Fluxo guiado no frontend (`/documents/upload`)
-- Passo a passo visivel para upload.
-- Dicas de validacao antes do envio.
+- Passo a passo visível para upload.
+- Dicas de validação antes do envio.
 - Feedback de arquivo selecionado (nome/tamanho).
 
-2. Validacao de arquivo antes do processamento
-- Extensao obrigatoria `.xml`.
+2. Validação de arquivo antes do processamento
+- Extensão obrigatória `.xml`.
 - MIME type de XML.
 - arquivo vazio bloqueado.
 - limite de tamanho configurado (`2MB`).
@@ -23,13 +23,13 @@ Melhorar a experiencia de onboarding no upload de NF-e e tornar as mensagens de 
   - XML malformado
   - falta de `infNFe`
   - ausencia de itens
-  - data de emissao invalida
+  - data de emissão invalida
   - falha de schema dos campos principais
 
 4. API de upload com retorno estruturado
 - resposta de erro no formato:
   - `error`: mensagem principal
-  - `details`: lista de orientacoes
+  - `details`: lista de orientações
 
 ## Arquivos principais
 
@@ -45,10 +45,9 @@ Melhorar a experiencia de onboarding no upload de NF-e e tornar as mensagens de 
   - parsing valido
   - xml malformado
   - missing infNFe
-  - data de emissao invalida
+  - data de emissão invalida
 
-## Observabilidade minima
+## Observabilidade mínima
 
-- `console.warn` estruturado para erros de validacao de NF-e no upload.
+- `console.warn` estruturado para erros de validação de NF-e no upload.
 - Telemetria de sucesso de upload continua ativa (`DOCUMENT_UPLOADED`).
-

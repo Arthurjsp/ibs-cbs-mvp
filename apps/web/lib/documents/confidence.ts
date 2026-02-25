@@ -109,7 +109,7 @@ export function buildRunConfidence(rows: ConfidenceInputRow[]): RunConfidence {
 
   const highlights: string[] = [];
   if (unsupportedItems > 0) {
-    highlights.push(`${unsupportedItems} item(ns) com limitacao de cobertura no motor legado.`);
+    highlights.push(`${unsupportedItems} item(ns) com limitação de cobertura no motor legado.`);
   }
   if (itemsWithMatchedRule < totalItems) {
     highlights.push(`${totalItems - itemsWithMatchedRule} item(ns) sem regra IBS/CBS claramente aplicada.`);
@@ -118,7 +118,7 @@ export function buildRunConfidence(rows: ConfidenceInputRow[]): RunConfidence {
     highlights.push(`${totalItems - itemsWithIbsAudit} item(ns) sem trilha IBS detalhada.`);
   }
   if (itemsWithLegacyRateConfig < totalItems) {
-    highlights.push(`${totalItems - itemsWithLegacyRateConfig} item(ns) sem origem de aliquota legado identificada.`);
+    highlights.push(`${totalItems - itemsWithLegacyRateConfig} item(ns) sem origem de alíquota legado identificada.`);
   }
   if (highlights.length === 0) {
     highlights.push("Cobertura consistente de regras, trilha e pesos para os itens calculados.");

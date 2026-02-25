@@ -307,7 +307,7 @@ export async function runCalcForDocument(params: {
           eventType: "ACCRUED",
           amount: row.amount,
           metadataJson: {
-            reason: "Credito gerado por simulacao elegivel",
+            reason: "Crédito gerado por simulação elegivel",
             calcRunId: run.id,
             taxType: row.taxType
           } as unknown as Prisma.InputJsonValue

@@ -129,7 +129,7 @@ function toBaseRow(run: ReportRunInput) {
       unsupportedItems > 0
         ? "Revisar itens unsupported"
         : toNumber(run.effectiveRate) > 0.25
-          ? "Revisar repasse e preco"
+          ? "Revisar repasse e preço"
           : "Monitorar com periodicidade mensal"
   };
 }
@@ -207,7 +207,7 @@ export function buildExecutiveInsights(dataset: ReportDataset): ExecutiveInsight
     insights.push({
       severity: "LOW",
       title: "Sem runs no filtro",
-      detail: "Nao ha dados no periodo selecionado. Amplie o recorte para gerar leitura executiva."
+      detail: "Não ha dados no período selecionado. Amplie o recorte para gerar leitura executiva."
     });
     return insights;
   }
@@ -215,8 +215,8 @@ export function buildExecutiveInsights(dataset: ReportDataset): ExecutiveInsight
   if (summary.unsupportedItems > 0) {
     insights.push({
       severity: "HIGH",
-      title: "Itens com limitacao de cobertura",
-      detail: `${summary.unsupportedItems} item(ns) unsupported no periodo. Priorize revisao de regras/UF antes de decisao de preco.`
+      title: "Itens com limitação de cobertura",
+      detail: `${summary.unsupportedItems} item(ns) unsupported no período. Priorize revisão de regras/UF antes de decisão de preço.`
     });
   }
 
@@ -224,25 +224,25 @@ export function buildExecutiveInsights(dataset: ReportDataset): ExecutiveInsight
     insights.push({
       severity: "MEDIUM",
       title: "Effective rate elevado",
-      detail: `Media de ${(summary.avgEffectiveRate * 100).toFixed(2)}% no recorte. Simule repasse e ajuste de mix para proteger margem.`
+      detail: `Média de ${(summary.avgEffectiveRate * 100).toFixed(2)}% no recorte. Simule repasse e ajuste de mix para proteger margem.`
     });
   }
 
   if (summary.totalCredit > 0) {
     insights.push({
       severity: "LOW",
-      title: "Credito potencial identificado",
-      detail: `Credito total estimado de R$ ${summary.totalCredit.toFixed(
+      title: "Crédito potencial identificado",
+      detail: `Crédito total estimado de R$ ${summary.totalCredit.toFixed(
         2
-      )}. Planeje estrategia de utilizacao e evidencia no fechamento.`
+      )}. Planeje estratégia de utilização e evidência no fechamento.`
     });
   }
 
   if (insights.length === 0) {
     insights.push({
       severity: "LOW",
-      title: "Cenario estavel",
-      detail: "Sem alertas criticos no recorte atual. Mantenha monitoramento mensal e simulacoes de sensibilidade."
+      title: "Cenário estável",
+      detail: "Sem alertas críticos no recorte atual. Mantenha monitoramento mensal e simulações de sensibilidade."
     });
   }
 

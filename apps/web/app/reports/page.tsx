@@ -1,4 +1,4 @@
-﻿import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   buildExecutiveInsights,
@@ -113,9 +113,9 @@ export default async function ReportsPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Relatorios</h1>
+        <h1 className="text-2xl font-semibold">Relatórios</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela voce decide o recorte de exportacao e valida os dados antes do download.
+          Nesta tela você decide o recorte de exportação e valida os dados antes do download.
         </p>
       </div>
 
@@ -131,13 +131,13 @@ export default async function ReportsPage({ searchParams }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Filtros e template</CardTitle>
-          <CardDescription>Defina periodo, cenario e formato antes de exportar.</CardDescription>
+          <CardDescription>Defina período, cenário e formato antes de exportar.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="flex flex-wrap items-end gap-3" method="GET">
             <div className="space-y-1">
               <label htmlFor="month" className="text-sm font-medium">
-                Mes (YYYY-MM)
+                Mês (YYYY-MM)
               </label>
               <input
                 id="month"
@@ -154,7 +154,7 @@ export default async function ReportsPage({ searchParams }: Props) {
 
             <div className="space-y-1">
               <label htmlFor="scenarioId" className="text-sm font-medium">
-                Cenario
+                Cenário
               </label>
               <select
                 id="scenarioId"
@@ -177,7 +177,7 @@ export default async function ReportsPage({ searchParams }: Props) {
               </label>
               <select id="template" name="template" defaultValue={template} className="h-10 rounded-md border bg-card px-3 text-sm">
                 <option value="EXECUTIVE">Executivo</option>
-                <option value="TECHNICAL">Tecnico</option>
+                <option value="TECHNICAL">Técnico</option>
               </select>
             </div>
 
@@ -209,7 +209,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Credito total</CardDescription>
+            <CardDescription>Crédito total</CardDescription>
             <CardTitle>{currencyFormatter.format(summary.totalCredit)}</CardTitle>
           </CardHeader>
         </Card>
@@ -225,7 +225,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Resumo para diretoria</CardTitle>
-            <CardDescription>Cada alerta informa risco, contexto e acao recomendada.</CardDescription>
+            <CardDescription>Cada alerta informa risco, contexto e ação recomendada.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {insights.map((insight) => (
@@ -241,8 +241,8 @@ export default async function ReportsPage({ searchParams }: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Maior exposicao no periodo</CardTitle>
-            <CardDescription>Top documentos/cenarios por tributo final estimado.</CardDescription>
+          <CardTitle>Maior exposição no período</CardTitle>
+            <CardDescription>Top documentos/cenários por tributo final estimado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {spotlight.length > 0 ? (
@@ -255,7 +255,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                     Tributo: {currencyFormatter.format(row.finalTax)} | Effective rate: {(row.effectiveRate * 100).toFixed(2)}% |
                     Unsupported: {row.unsupportedItems}
                   </p>
-                  <p className="text-muted-foreground">Acao: {row.actionHint}</p>
+                  <p className="text-muted-foreground">Ação: {row.actionHint}</p>
                 </div>
               ))
             ) : (
@@ -267,14 +267,14 @@ export default async function ReportsPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pre-visualizacao ({template})</CardTitle>
+          <CardTitle>Pre-visualização ({template})</CardTitle>
           <CardDescription>
             Mostrando {previewRows.length} de {dataset.rows.length} linha(s). O export usa todas as linhas do filtro.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Pre-visualizacao dos dados que serao exportados</caption>
+            <caption className="sr-only">Pre-visualização dos dados que serão exportados</caption>
             <TableHeader>
               <TableRow>
                 {dataset.columns.map((column) => (

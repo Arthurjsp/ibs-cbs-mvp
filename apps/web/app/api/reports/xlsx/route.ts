@@ -33,7 +33,7 @@ function rowFillBySeverity(severity: "HIGH" | "MEDIUM" | "LOW") {
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
-    return NextResponse.json({ error: "Nao autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
   const rateLimit = enforceRateLimit({
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
   });
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Limite de exportacoes XLSX excedido." },
+      { error: "Limite de exportações XLSX excedido." },
       {
         status: 429,
         headers: {
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
   const scenarioId = searchParams.get("scenarioId") || undefined;
   const template = parseReportTemplate(searchParams.get("template"));
   if (!month) {
-    return NextResponse.json({ error: "Parametro month e obrigatorio (YYYY-MM)." }, { status: 400 });
+    return NextResponse.json({ error: "Parâmetro month é obrigatório (YYYY-MM)." }, { status: 400 });
   }
 
   const { start, end } = monthRange(month);
@@ -117,13 +117,13 @@ export async function GET(request: Request) {
   ];
 
   summarySheet.mergeCells("A1:E1");
-  summarySheet.getCell("A1").value = "Resumo Executivo de Simulacoes IBS/CBS";
+  summarySheet.getCell("A1").value = "Resumo Executivo de Simulações IBS/CBS";
   summarySheet.getCell("A1").font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
   summarySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB6471E" } };
   summarySheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
 
   summarySheet.mergeCells("A2:E2");
-  summarySheet.getCell("A2").value = `Periodo: ${month} | Template: ${template} | Cenario: ${scenarioId ?? "Todos/Baseline"}`;
+  summarySheet.getCell("A2").value = `Período: ${month} | Template: ${template} | Cenário: ${scenarioId ?? "Todos/Baseline"}`;
   summarySheet.getCell("A2").font = { size: 11, color: { argb: "FF374151" } };
 
   summarySheet.getCell("A4").value = "Indicadores principais";
@@ -132,8 +132,8 @@ export async function GET(request: Request) {
   const metricRows = [
     ["Runs no filtro", summary.rowCount],
     ["Tributo final total", summary.totalFinalTax],
-    ["Credito total", summary.totalCredit],
-    ["Media effective rate", summary.avgEffectiveRate],
+    ["Crédito total", summary.totalCredit],
+    ["Média effective rate", summary.avgEffectiveRate],
     ["Itens unsupported", summary.unsupportedItems]
   ] as const;
 
@@ -147,9 +147,9 @@ export async function GET(request: Request) {
   summarySheet.getCell("B7").numFmt = '"R$" #,##0.00';
   summarySheet.getCell("B8").numFmt = "0.00%";
 
-  summarySheet.getCell("A11").value = "Alertas e recomendacoes";
+  summarySheet.getCell("A11").value = "Alertas e recomendações";
   summarySheet.getCell("A11").font = { bold: true, color: { argb: "FF111827" } };
-  summarySheet.getRow(12).values = ["Severidade", "Titulo", "Detalhe"];
+  summarySheet.getRow(12).values = ["Severidade", "Título", "Detalhe"];
   summarySheet.getRow(12).font = { bold: true, color: { argb: "FFFFFFFF" } };
   summarySheet.getRow(12).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF374151" } };
 
@@ -171,15 +171,15 @@ export async function GET(request: Request) {
   });
 
   const spotlightStart = Math.max(16, 13 + insights.length + 2);
-  summarySheet.getCell(`A${spotlightStart}`).value = "Top exposicao tributaria";
+  summarySheet.getCell(`A${spotlightStart}`).value = "Top exposição tributária";
   summarySheet.getCell(`A${spotlightStart}`).font = { bold: true, color: { argb: "FF111827" } };
   summarySheet.getRow(spotlightStart + 1).values = [
-    "Cenario",
+    "Cenário",
     "Documento",
     "Tributo final",
     "Effective rate",
     "Unsupported",
-    "Acao"
+    "Ação"
   ];
   summarySheet.getRow(spotlightStart + 1).font = { bold: true, color: { argb: "FFFFFFFF" } };
   summarySheet.getRow(spotlightStart + 1).fill = {
@@ -207,7 +207,7 @@ export async function GET(request: Request) {
     });
   });
 
-  const detailSheet = workbook.addWorksheet(template === "TECHNICAL" ? "Dados Tecnicos" : "Dados Executivos");
+  const detailSheet = workbook.addWorksheet(template === "TECHNICAL" ? "Dados Técnicos" : "Dados Executivos");
   detailSheet.columns = dataset.columns.map((column) => ({
     header: column.label,
     key: column.key,

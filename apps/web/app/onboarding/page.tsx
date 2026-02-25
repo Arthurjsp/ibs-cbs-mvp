@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
@@ -79,7 +79,7 @@ export default async function OnboardingPage() {
         <CardHeader>
           <CardTitle>Onboarding da empresa</CardTitle>
           <CardDescription>
-            Preencha os dados basicos para ativar o tenant e criar o RuleSet inicial de simulacao.
+            Preencha os dados básicos para ativar o tenant e criar o RuleSet inicial de simulação.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,7 +88,7 @@ export default async function OnboardingPage() {
               <Label htmlFor="tenantName">Nome do tenant</Label>
               <Input id="tenantName" name="tenantName" defaultValue={tenant?.name ?? ""} aria-describedby="tenant-name-help" required />
               <p id="tenant-name-help" className="text-xs text-muted-foreground">
-                Nome interno da sua operacao no sistema.
+                Nome interno da sua operação no sistema.
               </p>
             </div>
 
@@ -112,7 +112,7 @@ export default async function OnboardingPage() {
               <Label htmlFor="uf">UF</Label>
               <Input id="uf" name="uf" defaultValue={company?.uf ?? "SP"} maxLength={2} aria-describedby="uf-help" required />
               <p id="uf-help" className="text-xs text-muted-foreground">
-                Informe a UF principal da operacao (2 letras).
+                Informe a UF principal da operação (2 letras).
               </p>
             </div>
 
@@ -132,7 +132,7 @@ export default async function OnboardingPage() {
       </Card>
 
       <p className="text-sm text-muted-foreground">
-        Aviso: este produto entrega estimativas para simulacao estrategica e nao substitui apuracao oficial.
+        Aviso: este produto entrega estimativas para simulação estratégica e não substitui apuração oficial.
       </p>
     </div>
   );

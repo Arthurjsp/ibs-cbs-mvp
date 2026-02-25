@@ -44,13 +44,13 @@ function getLegacyEntries(audit: unknown): string[] {
   const rateSource = String(rateSelection?.source ?? "");
   if (rateSource) {
     lines.push(
-      `Origem da aliquota legado: ${rateSource}${
+      `Origem da alíquota legado: ${rateSource}${
         asNumber(rateSelection?.rate) != null ? ` (${toPercent(asNumber(rateSelection?.rate), 4)})` : ""
       }.`
     );
   }
   if (unsupportedReasons.length > 0) {
-    lines.push(`Limitacoes detectadas: ${unsupportedReasons.join(", ")}.`);
+    lines.push(`Limitações detectadas: ${unsupportedReasons.join(", ")}.`);
   }
   if (notes.length > 0) {
     lines.push(...notes.slice(0, 2));
@@ -68,7 +68,7 @@ function getIbsEntries(audit: unknown): string[] {
 
   const matchedRules = ruleAudit
     .filter((entry) => asBoolean(entry.matched))
-    .map((entry) => String(entry.description ?? entry.ruleId ?? "regra sem descricao"));
+    .map((entry) => String(entry.description ?? entry.ruleId ?? "regra sem descrição"));
 
   const lines: string[] = [];
   if (matchedRules.length > 0) {
@@ -78,9 +78,9 @@ function getIbsEntries(audit: unknown): string[] {
   }
 
   if (asBoolean(ibs?.creditEligible)) {
-    lines.push("Item elegivel a credito na simulacao.");
+    lines.push("Item elegivel a crédito na simulação.");
   } else {
-    lines.push("Item sem elegibilidade de credito na simulacao.");
+    lines.push("Item sem elegibilidade de crédito na simulação.");
   }
 
   const totalTax = asNumber(ibs?.totalTax);
@@ -105,10 +105,10 @@ function getTransitionEntries(audit: unknown): string[] {
 
   const lines: string[] = [];
   if (year != null && legacyWeight != null && ibsWeight != null) {
-    lines.push(`Ano de transicao ${year}: legado ${toPercent(legacyWeight)} | IBS/CBS ${toPercent(ibsWeight)}.`);
+    lines.push(`Ano de transição ${year}: legado ${toPercent(legacyWeight)} | IBS/CBS ${toPercent(ibsWeight)}.`);
   }
   if (weightedLegacy != null || weightedIbs != null) {
-    lines.push(`Ponderacao: legado ${toMoney(weightedLegacy)} + IBS ${toMoney(weightedIbs)}.`);
+    lines.push(`Ponderação: legado ${toMoney(weightedLegacy)} + IBS ${toMoney(weightedIbs)}.`);
   }
   if (total != null) {
     lines.push(`Tributo final do item: ${toMoney(total)}.`);
@@ -117,7 +117,7 @@ function getTransitionEntries(audit: unknown): string[] {
     lines.push(`Effective rate do item: ${(effectiveRate * 100).toFixed(2)}%.`);
   }
   if (lines.length === 0) {
-    lines.push("Sem eventos de transicao detalhados para este item.");
+    lines.push("Sem eventos de transição detalhados para este item.");
   }
   return lines;
 }

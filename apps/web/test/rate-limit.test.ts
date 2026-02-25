@@ -28,7 +28,7 @@ describe("rate-limit", () => {
     expect(allowedAfterWindow.allowed).toBe(true);
   });
 
-  it("constroi chave com tenant/usuario/ip/rota", () => {
+  it("constroi chave com tenant/usuário/ip/rota", () => {
     const request = new Request("http://localhost/api/telemetry", {
       headers: {
         "x-forwarded-for": "203.0.113.10, 203.0.113.11"

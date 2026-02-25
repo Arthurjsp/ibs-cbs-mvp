@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -113,16 +113,16 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Apuracao assistida e divergencias</h1>
+        <h1 className="text-2xl font-semibold">Apuração assistida e divergências</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela voce compara previa assistida com simulado e registra justificativas com evidencia.
+          Nesta tela você compara prévia assistida com simulado e registra justificativas com evidência.
         </p>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-5" aria-label="Indicadores do mes selecionado">
+      <section className="grid gap-4 md:grid-cols-5" aria-label="Indicadores do mês selecionado">
         <Card>
           <CardHeader>
-            <CardDescription>Mes de referencia</CardDescription>
+            <CardDescription>Mês de referência</CardDescription>
             <CardTitle>{month}</CardTitle>
           </CardHeader>
         </Card>
@@ -146,7 +146,7 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>Divergencias abertas</CardDescription>
+            <CardDescription>Divergências abertas</CardDescription>
             <CardTitle>{openCount}</CardTitle>
           </CardHeader>
         </Card>
@@ -154,13 +154,13 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Importar previa assistida</CardTitle>
-          <CardDescription>Informe os totais para comparar com o simulado e gerar divergencias por metrica.</CardDescription>
+          <CardTitle>Importar prévia assistida</CardTitle>
+          <CardDescription>Informe os totais para comparar com o simulado e gerar divergências por métrica.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={importAction} className="grid gap-4 md:grid-cols-3" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="month">Mes (YYYY-MM)</Label>
+              <Label htmlFor="month">Mês (YYYY-MM)</Label>
               <Input id="month" name="month" defaultValue={month} required />
             </div>
             <div className="space-y-2">
@@ -184,11 +184,11 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
               <Input id="isTotal" name="isTotal" type="number" step="0.01" required />
             </div>
             <div className="space-y-2 md:col-span-3">
-              <Label htmlFor="notes">Observacoes</Label>
-              <Textarea id="notes" name="notes" placeholder="Contexto da previa, premissas e fonte de evidencia." />
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea id="notes" name="notes" placeholder="Contexto da prévia, premissas e fonte de evidência." />
             </div>
             <div className="md:col-span-3">
-              <Button type="submit">Importar previa e gerar divergencias</Button>
+              <Button type="submit">Importar prévia e gerar divergências</Button>
             </div>
           </form>
         </CardContent>
@@ -196,17 +196,17 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Divergencias recentes</CardTitle>
-          <CardDescription>Classifique e justifique para manter trilha de governanca e auditoria.</CardDescription>
+          <CardTitle>Divergências recentes</CardTitle>
+          <CardDescription>Classifique e justifique para manter trilha de governança e auditoria.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Tabela de divergencias com valores simulados e assistidos</caption>
+            <caption className="sr-only">Tabela de divergências com valores simulados e assistidos</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
-                <TableHead>Mes</TableHead>
-                <TableHead>Metrica</TableHead>
+                <TableHead>Mês</TableHead>
+                <TableHead>Métrica</TableHead>
                 <TableHead>Simulado</TableHead>
                 <TableHead>Assistido</TableHead>
                 <TableHead>Delta</TableHead>
@@ -227,11 +227,11 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
                   <TableCell>{Number(divergence.deltaValue).toFixed(4)}</TableCell>
                   <TableCell>{divergence.status}</TableCell>
                   <TableCell>
-                    <form action={justifyAction} className="flex flex-wrap gap-2" aria-label={`Justificar divergencia ${divergence.id}`}>
+                    <form action={justifyAction} className="flex flex-wrap gap-2" aria-label={`Justificar divergência ${divergence.id}`}>
                       <input type="hidden" name="divergenceId" value={divergence.id} />
                       <input type="hidden" name="status" value="JUSTIFIED" />
                       <Label htmlFor={`justification-${divergence.id}`} className="sr-only">
-                        Justificativa da divergencia
+                        Justificativa da divergência
                       </Label>
                       <Input
                         id={`justification-${divergence.id}`}
@@ -255,7 +255,7 @@ export default async function AssistedAssessmentPage({ searchParams }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Snapshots importados</CardTitle>
-          <CardDescription>{snapshots.length} importacao(oes) recentes.</CardDescription>
+          <CardDescription>{snapshots.length} importações recentes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {snapshots.map((snapshot) => (

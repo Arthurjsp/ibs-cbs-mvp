@@ -21,7 +21,7 @@ export function buildEffectiveRateMessage(effectiveRate: number, baseValue: numb
 
   return {
     estimatedTax,
-    message: `Effective rate = (IBS + CBS + IS) / base tributavel. Exemplo: ${formatPercent(effectiveRate)} sobre ${formatCurrency(
+    message: `Effective rate = (IBS + CBS + IS) / base tributável. Exemplo: ${formatPercent(effectiveRate)} sobre ${formatCurrency(
       baseValue
     )} equivale a ${formatCurrency(estimatedTax)} de carga estimada.`
   };

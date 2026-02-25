@@ -148,7 +148,7 @@ Campos de contexto:
 
 ## Dashboard Executivo e Telemetria
 
-- Dashboard com cards executivos, variacao MoM/YoY e explicacao das metricas.
+- Dashboard com cards executivos, variação MoM/YoY e explicação das métricas.
 - Eventos coletados automaticamente:
   - `DOCUMENT_UPLOADED`
   - `CALCULATION_EXECUTED`
@@ -160,27 +160,27 @@ Campos de contexto:
 - Endpoint de telemetria manual:
   - `POST /api/telemetry`
 
-Detalhamento tecnico:
+Detalhamento técnico:
 
 - `docs/phase-1-dashboard-telemetry.md`
 
-## Upload Guiado e Validacao de XML
+## Upload Guiado e Validação de XML
 
 - Fluxo com passo a passo em `/documents/upload`.
-- Mensagens de erro com orientacao para XML invalido.
-- Limite de tamanho e validacao de tipo de arquivo.
+- Mensagens de erro com orientação para XML inválido.
+- Limite de tamanho e validação de tipo de arquivo.
 
-Detalhes tecnicos:
+Detalhes técnicos:
 
 - `docs/phase-2-upload-ux-validation.md`
 
-## Fase 3 - Feedback e Confianca
+## Fase 3 - Feedback e Confiança
 
 - Banner de estimativa com link para `/docs/engine`.
-- Modal de confirmacao antes do calculo em `/documents/[id]`.
-- Legenda de effective rate com formula e exemplo financeiro.
+- Modal de confirmação antes do cálculo em `/documents/[id]`.
+- Legenda de effective rate com fórmula e exemplo financeiro.
 
-Detalhamento tecnico:
+Detalhamento técnico:
 
 - `docs/phase-3-trust-feedback.md`
 
@@ -210,33 +210,33 @@ Detalhamento tecnico:
 
 ## Posicionamento Tax Transition OS
 
-- O produto foi reposicionado para decisao tributaria e risco financeiro na transicao IBS/CBS.
-- Pagina de estrategia interna: `/strategy`.
-- Documento de estrategia e ICP: `docs/tax-transition-os.md`.
-- Objetivo comercial: nao competir como compliance commodity, e sim como cockpit de decisao para CFO/Controller.
+- O produto foi reposicionado para decisão tributária e risco financeiro na transição IBS/CBS.
+- Página de estratégia interna: `/strategy`.
+- Documento de estratégia e ICP: `docs/tax-transition-os.md`.
+- Objetivo comercial: não competir como compliance commodity, e sim como cockpit de decisão para CFO/Controller.
 
 ## Fase 8 - Scenario Lab (D+14)
 
-- Comparacao lado a lado de ate 3 cenarios no `/scenarios`.
-- Baseline automatico com delta de tributo e leitura de impacto em preco/resultado.
-- Formulario com sliders para transicao e repasse, com preview imediato.
-- Acao de duplicar cenario para acelerar simulacoes.
-- Detalhamento tecnico:
+- Comparação lado a lado de até 3 cenários no `/scenarios`.
+- Baseline automático com delta de tributo e leitura de impacto em preço/resultado.
+- Formulário com sliders para transição e repasse, com preview imediato.
+- Ação de duplicar cenário para acelerar simulações.
+- Detalhamento técnico:
   - `docs/phase-8-scenario-lab.md`
 
-## Fase 9 - Confianca, Auditoria e Governanca (D+30)
+## Fase 9 - Confiança, Auditoria e Governança (D+30)
 
-- Score de confianca por run no detalhe de documento.
-- Trilha de auditoria explicada por aba (legado, IBS e transicao), com JSON bruto expansivel.
-- Relatorios com template executivo/tecnico, pre-visualizacao e export aderente ao template.
+- Score de confiança por run no detalhe de documento.
+- Trilha de auditoria explicada por aba (legado, IBS e transição), com JSON bruto expansível.
+- Relatórios com template executivo/técnico, pre-visualização e export aderente ao template.
 - Billing com barra de consumo, alerta de limite e telemetria operacional de uso.
-- Detalhamento tecnico:
+- Detalhamento técnico:
   - `docs/phase-9-governance-confidence-reports.md`
 
 ## Fase 10 - Polimento Executivo (D+30.1)
 
 - Auditoria por item com layout executivo (prioridade, resumo e trilha explicada).
 - Export XLSX com aba adicional `Resumo Diretoria`.
-- Bloco executivo no `/reports` com insights e maior exposicao tributaria.
-- Detalhamento tecnico:
+- Bloco executivo no `/reports` com insights e maior exposição tributária.
+- Detalhamento técnico:
   - `docs/phase-10-executive-polish.md`

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useId, useState } from "react";
 import { HelpCircle } from "lucide-react";
@@ -32,11 +32,11 @@ export function FieldHelp({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const apply = () => setSupportsHover(media.matches);
+    const média = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const apply = () => setSupportsHover(média.matches);
     apply();
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
+    média.addEventListener("change", apply);
+    return () => média.removeEventListener("change", apply);
   }, []);
 
   const triggerLabel = iconAriaLabel ?? `Ajuda sobre ${label}`;

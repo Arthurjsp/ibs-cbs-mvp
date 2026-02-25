@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildDivergenceRows } from "../lib/assisted-assessment-math";
 
 describe("buildDivergenceRows", () => {
-  it("calcula divergencias para IBS/CBS/IS e effective rate", () => {
+  it("calcula divergências para IBS/CBS/IS e effective rate", () => {
     const rows = buildDivergenceRows({
       simulated: {
         month: "2026-02",
@@ -38,7 +38,7 @@ describe("buildDivergenceRows", () => {
     });
   });
 
-  it("retorna deltaPct nulo quando simulacao e zero", () => {
+  it("retorna deltaPct nulo quando simulação e zero", () => {
     const rows = buildDivergenceRows({
       simulated: {
         month: "2026-02",

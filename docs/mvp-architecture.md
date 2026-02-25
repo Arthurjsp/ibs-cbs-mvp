@@ -63,8 +63,8 @@
 - Storage por interface (local em dev, adaptador S3 preparado).
 - Regras versionadas por vigência (`validFrom`, `validTo`) para evolução normativa.
 
-## Orientacao de negocio (Tax Transition OS)
+## Orientação de negócio (Tax Transition OS)
 
-- O foco do produto e reduzir incerteza operacional e risco financeiro na transicao.
-- O MVP atual cobre simulacao de impacto, trilha de auditoria e cockpit executivo.
+- O foco do produto é reduzir incerteza operacional e risco financeiro na transição.
+- O MVP atual cobre simulação de impacto, trilha de auditoria e cockpit executivo.
 - Itens de roadmap para capturar valor: tradutor ERP, radar de risco fiscal e pricing com elasticidade.

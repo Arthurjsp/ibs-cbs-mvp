@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
@@ -19,7 +19,7 @@ const scenarioSchema = z.object({
 });
 
 function formatOptionalRate(value: number | null) {
-  if (value == null) return "padrao da regra";
+  if (value == null) return "padrão da regra";
   return `${(value * 100).toFixed(2)}%`;
 }
 
@@ -149,9 +149,9 @@ export default async function ScenariosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Simulador estrategico</h1>
+        <h1 className="text-2xl font-semibold">Simulador estratégico</h1>
         <p className="text-sm text-muted-foreground">
-          Nesta tela voce decide qual combinacao de transicao e repasse protege melhor sua margem.
+          Nesta tela você decide qual combinação de transição e repasse protege melhor sua margem.
         </p>
       </div>
 
@@ -159,14 +159,14 @@ export default async function ScenariosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Novo cenario</CardTitle>
-          <CardDescription>Preencha os campos abaixo para criar uma variacao comparavel com baseline.</CardDescription>
+          <CardTitle>Novo cenário</CardTitle>
+          <CardDescription>Preencha os campos abaixo para criar uma variação comparável com baseline.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={createScenario} className="grid gap-4 md:grid-cols-3" noValidate>
             <ScenarioFormFields />
             <div className="flex items-end md:col-span-3">
-              <Button type="submit">Criar cenario</Button>
+              <Button type="submit">Criar cenário</Button>
             </div>
           </form>
         </CardContent>
@@ -174,19 +174,19 @@ export default async function ScenariosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Cenarios cadastrados</CardTitle>
-          <CardDescription>{scenarios.length} cenario(s) no tenant.</CardDescription>
+          <CardTitle>Cenários cadastrados</CardTitle>
+          <CardDescription>{scenarios.length} cenário(s) no tenant.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
-            <caption className="sr-only">Tabela de cenarios com parametros, ultimo run e acoes</caption>
+            <caption className="sr-only">Tabela de cenários com parâmetros, último run e ações</caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Criado em</TableHead>
-                <TableHead>Parametros</TableHead>
-                <TableHead>Status de comparacao</TableHead>
-                <TableHead>Acoes</TableHead>
+                <TableHead>Parâmetros</TableHead>
+                <TableHead>Status de comparação</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -199,7 +199,7 @@ export default async function ScenariosPage() {
                     <TableCell>{scenario.name}</TableCell>
                     <TableCell>{new Date(scenario.createdAt).toLocaleString("pt-BR")}</TableCell>
                     <TableCell className="max-w-[380px] text-xs text-muted-foreground">
-                      <p>Transicao: {(normalized.transitionFactor * 100).toFixed(0)}% IBS/CBS</p>
+                      <p>Transição: {(normalized.transitionFactor * 100).toFixed(0)}% IBS/CBS</p>
                       <p>Repasse: {normalized.pricePassThroughPercent.toFixed(0)}%</p>
                       <p>Override IBS: {formatOptionalRate(normalized.overrideRates.ibsRate)}</p>
                       <p>Override CBS: {formatOptionalRate(normalized.overrideRates.cbsRate)}</p>
@@ -211,7 +211,7 @@ export default async function ScenariosPage() {
                           <p>Doc: {row.latestRun.documentKey}</p>
                         </>
                       ) : (
-                        <p>Sem run. Execute calculo em um documento.</p>
+                        <p>Sem run. Execute cálculo em um documento.</p>
                       )}
                     </TableCell>
                     <TableCell>

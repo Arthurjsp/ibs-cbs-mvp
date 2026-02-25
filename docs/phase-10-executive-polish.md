@@ -2,26 +2,26 @@
 
 ## Objetivo
 
-Refinar a entrega visual e executiva para decisao de diretoria sem alterar o core de calculo.
+Refinar a entrega visual e executiva para decisão de diretoria sem alterar o core de cálculo.
 
 ## Entregas
 
 ### 1) Auditoria com layout executivo em `/documents/[id]`
 
-- cada celula de auditoria agora mostra:
+- cada célula de auditoria agora mostra:
   - badge de prioridade (`ALTA`, `MEDIA`, `BAIXA`)
   - frase de resumo principal
-  - trilha explicada expansivel
-  - JSON bruto expansivel
-- o foco passou a ser leitura de risco, nao apenas dump tecnico.
+  - trilha explicada expansível
+  - JSON bruto expansível
+- o foco passou a ser leitura de risco, não apenas dump técnico.
 
 ### 2) XLSX com aba `Resumo Diretoria`
 
 - export `xlsx` inclui:
   - aba 1: `Resumo Diretoria`
-    - KPIs do periodo
-    - alertas/recomendacoes por severidade
-    - top exposicao tributaria por documento/cenario
+    - KPIs do período
+    - alertas/recomendações por severidade
+    - top exposição tributária por documento/cenário
   - aba 2: dados detalhados no template selecionado
 - mantem formatações para uso em reunião executiva.
 
@@ -29,7 +29,7 @@ Refinar a entrega visual e executiva para decisao de diretoria sem alterar o cor
 
 - `/reports` agora exibe:
   - card `Resumo para diretoria`
-  - card `Maior exposicao no periodo`
+  - card `Maior exposição no período`
   - insights gerados a partir dos dados do filtro.
 
 ## Arquivos principais
@@ -40,7 +40,7 @@ Refinar a entrega visual e executiva para decisao de diretoria sem alterar o cor
 - `apps/web/app/api/reports/xlsx/route.ts`
 - `apps/web/test/report-template.test.ts`
 
-## Validacao
+## Validação
 
 - `corepack pnpm test`
 - `corepack pnpm typecheck`
