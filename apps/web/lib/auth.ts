@@ -4,6 +4,7 @@ import { type NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
@@ -16,16 +17,39 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" }
+        email: { label: "Email", type: "email" },
+        password: { label: "Senha", type: "password" }
       },
       async authorize(credentials) {
         const email = credentials?.email?.toLowerCase().trim();
-        if (!email) return null;
-        const user = await prisma.user.findFirst({
-          where: { email },
-          select: { id: true, email: true, name: true, tenantId: true, role: true }
+        const password = credentials?.password ?? "";
+        if (!email || !password) return null;
+
+        const users = await prisma.user.findMany({
+          where: { email, isActive: true },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            tenantId: true,
+            role: true,
+            passwordHash: true
+          },
+          take: 2
         });
-        if (!user) return null;
+
+        if (users.length !== 1) return null;
+        const user = users[0];
+        if (!user.passwordHash) return null;
+
+        const validPassword = verifyPassword(password, user.passwordHash);
+        if (!validPassword) return null;
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        });
+
         return {
           id: user.id,
           email: user.email,

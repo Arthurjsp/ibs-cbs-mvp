@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ensureDefaultRuleSet } from "@/lib/ruleset";
+import { ensureBaselineScenario, ensureDefaultLegacyRuleSet, ensureDefaultRuleSet } from "@/lib/ruleset";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,8 @@ export default async function OnboardingPage() {
     }
 
     await ensureDefaultRuleSet(currentUser.tenantId);
+    await ensureDefaultLegacyRuleSet(currentUser.tenantId);
+    await ensureBaselineScenario(currentUser.tenantId);
     revalidatePath("/dashboard");
     redirect("/dashboard");
   }

@@ -50,3 +50,117 @@ export async function ensureDefaultRuleSet(tenantId: string) {
   });
 }
 
+export async function ensureDefaultLegacyRuleSet(tenantId: string) {
+  const active = await prisma.legacyRuleSet.findFirst({
+    where: { tenantId, status: RuleSetStatus.ACTIVE },
+    include: { icmsRates: true, ufConfigs: true }
+  });
+
+  if (active) return active;
+
+  const legacyRuleSet = await prisma.legacyRuleSet.create({
+    data: {
+      tenantId,
+      name: "RuleSet Legado ICMS/ISS v2",
+      validFrom: new Date("2026-01-01"),
+      status: RuleSetStatus.ACTIVE
+    }
+  });
+
+  await prisma.iCMSRate.createMany({
+    data: [
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        uf: "SP",
+        rate: 0.18,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        uf: "PR",
+        rate: 0.18,
+        validFrom: new Date("2026-01-01")
+      }
+    ]
+  });
+
+  await prisma.legacyUFConfig.createMany({
+    data: [
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "SP",
+        recipientUf: "SP",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: false,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "PR",
+        recipientUf: "PR",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: false,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "SP",
+        recipientUf: "PR",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: true,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      },
+      {
+        tenantId,
+        legacyRuleSetId: legacyRuleSet.id,
+        emitterUf: "PR",
+        recipientUf: "SP",
+        internalRate: 0.18,
+        interstateRate: 0.12,
+        stRate: 0.18,
+        stMva: 0.4,
+        difalEnabled: true,
+        stEnabled: false,
+        validFrom: new Date("2026-01-01")
+      }
+    ]
+  });
+
+  return prisma.legacyRuleSet.findUnique({
+    where: { id: legacyRuleSet.id },
+    include: { icmsRates: true, ufConfigs: true }
+  });
+}
+
+export async function ensureBaselineScenario(tenantId: string) {
+  const existing = await prisma.scenario.findFirst({
+    where: { tenantId, name: "Cenario Base" }
+  });
+
+  if (existing) return existing;
+
+  return prisma.scenario.create({
+    data: {
+      tenantId,
+      name: "Cenario Base",
+      parametersJson: { transitionFactor: 1, pricePassThroughPercent: 0 }
+    }
+  });
+}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
@@ -12,10 +12,11 @@ const items: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/documents", label: "Documentos" },
   { href: "/documents/upload", label: "Upload XML" },
-  { href: "/assisted-assessment", label: "Apuração" },
-  { href: "/credits", label: "Créditos" },
-  { href: "/scenarios", label: "Cenários" },
-  { href: "/reports", label: "Relatórios" },
+  { href: "/assisted-assessment", label: "Apuracao" },
+  { href: "/credits", label: "Creditos" },
+  { href: "/scenarios", label: "Cenarios" },
+  { href: "/reports", label: "Relatorios" },
+  { href: "/settings/users", label: "Usuarios", roles: ["ADMIN"] },
   { href: "/billing", label: "Planos", roles: ["ADMIN", "CFO"] }
 ];
 
@@ -27,7 +28,7 @@ function canAccess(item: NavItem, role?: UserRole) {
 
 export function AppNav({ pathname, userRole }: { pathname: string; userRole?: UserRole }) {
   return (
-    <nav aria-label="Navegação principal do produto">
+    <nav aria-label="Navegacao principal do produto">
       <ul className="flex flex-wrap gap-2">
         {items.filter((item) => canAccess(item, userRole)).map((item) => {
           const active = pathname.startsWith(item.href);

@@ -103,6 +103,8 @@ model User {
   name          String?
   role          UserRole  @default(ADMIN)
   passwordHash  String?
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
   emailVerified DateTime?
   image         String?
   createdAt     DateTime  @default(now())

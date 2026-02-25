@@ -1,6 +1,13 @@
 import { PrismaClient, RuleSetStatus, TenantPlan, UserRole } from "@prisma/client";
+import { randomBytes, scryptSync } from "node:crypto";
 
 const prisma = new PrismaClient();
+
+function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${hash}`;
+}
 
 async function upsertCompany(tenantId: string) {
   const existing = await prisma.companyProfile.findFirst({
@@ -217,6 +224,8 @@ async function seedScenario(tenantId: string) {
 }
 
 async function main() {
+  const demoPasswordHash = hashPassword("Demo@123456");
+
   const tenant = await prisma.tenant.upsert({
     where: { id: "tenant-dev-seed" },
     update: {
@@ -239,13 +248,17 @@ async function main() {
     },
     update: {
       name: "Admin Demo",
-      role: UserRole.ADMIN
+      role: UserRole.ADMIN,
+      isActive: true,
+      passwordHash: demoPasswordHash
     },
     create: {
       tenantId: tenant.id,
       email: "admin@demo.local",
       name: "Admin Demo",
-      role: UserRole.ADMIN
+      role: UserRole.ADMIN,
+      isActive: true,
+      passwordHash: demoPasswordHash
     }
   });
 
