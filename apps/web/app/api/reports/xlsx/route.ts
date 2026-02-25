@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { buildReportDataset, parseReportTemplate } from "@/lib/reports/template";
+import {
+  buildExecutiveInsights,
+  buildExecutiveSpotlight,
+  buildReportDataset,
+  parseReportTemplate,
+  summarizeReportDataset
+} from "@/lib/reports/template";
 import { buildRateLimitKey, enforceRateLimit } from "@/lib/security/rate-limit";
 import { trackTelemetryEvent } from "@/lib/telemetry/track";
 import { monthRange } from "@/lib/utils";
@@ -16,6 +22,12 @@ function numFmtByType(type: "text" | "datetime" | "number" | "currency" | "perce
   if (type === "percent") return "0.00%";
   if (type === "number") return "#,##0.00";
   return null;
+}
+
+function rowFillBySeverity(severity: "HIGH" | "MEDIUM" | "LOW") {
+  if (severity === "HIGH") return "FFFFF1F2";
+  if (severity === "MEDIUM") return "FFFFFAE6";
+  return "FFEFFAF2";
 }
 
 export async function GET(request: Request) {
@@ -87,24 +99,126 @@ export async function GET(request: Request) {
     }))
   });
 
+  const summary = summarizeReportDataset(dataset);
+  const insights = buildExecutiveInsights(dataset);
+  const spotlight = buildExecutiveSpotlight(dataset, 5);
+
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Motor IBS/CBS";
   workbook.created = new Date();
-  const sheet = workbook.addWorksheet(template === "TECHNICAL" ? "Tecnico" : "Executivo");
 
-  sheet.columns = dataset.columns.map((column) => ({
+  const summarySheet = workbook.addWorksheet("Resumo Diretoria");
+  summarySheet.columns = [
+    { key: "a", width: 28 },
+    { key: "b", width: 36 },
+    { key: "c", width: 24 },
+    { key: "d", width: 24 },
+    { key: "e", width: 24 }
+  ];
+
+  summarySheet.mergeCells("A1:E1");
+  summarySheet.getCell("A1").value = "Resumo Executivo de Simulacoes IBS/CBS";
+  summarySheet.getCell("A1").font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+  summarySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB6471E" } };
+  summarySheet.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
+
+  summarySheet.mergeCells("A2:E2");
+  summarySheet.getCell("A2").value = `Periodo: ${month} | Template: ${template} | Cenario: ${scenarioId ?? "Todos/Baseline"}`;
+  summarySheet.getCell("A2").font = { size: 11, color: { argb: "FF374151" } };
+
+  summarySheet.getCell("A4").value = "Indicadores principais";
+  summarySheet.getCell("A4").font = { bold: true, color: { argb: "FF111827" } };
+
+  const metricRows = [
+    ["Runs no filtro", summary.rowCount],
+    ["Tributo final total", summary.totalFinalTax],
+    ["Credito total", summary.totalCredit],
+    ["Media effective rate", summary.avgEffectiveRate],
+    ["Itens unsupported", summary.unsupportedItems]
+  ] as const;
+
+  metricRows.forEach((metric, index) => {
+    const row = summarySheet.getRow(5 + index);
+    row.getCell(1).value = metric[0];
+    row.getCell(1).font = { bold: true };
+    row.getCell(2).value = metric[1];
+  });
+  summarySheet.getCell("B6").numFmt = '"R$" #,##0.00';
+  summarySheet.getCell("B7").numFmt = '"R$" #,##0.00';
+  summarySheet.getCell("B8").numFmt = "0.00%";
+
+  summarySheet.getCell("A11").value = "Alertas e recomendacoes";
+  summarySheet.getCell("A11").font = { bold: true, color: { argb: "FF111827" } };
+  summarySheet.getRow(12).values = ["Severidade", "Titulo", "Detalhe"];
+  summarySheet.getRow(12).font = { bold: true, color: { argb: "FFFFFFFF" } };
+  summarySheet.getRow(12).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF374151" } };
+
+  insights.forEach((insight, index) => {
+    const rowNumber = 13 + index;
+    const row = summarySheet.getRow(rowNumber);
+    row.getCell(1).value = insight.severity;
+    row.getCell(2).value = insight.title;
+    row.getCell(3).value = insight.detail;
+    row.eachCell((cell) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: rowFillBySeverity(insight.severity) } };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFE5E7EB" } },
+        left: { style: "thin", color: { argb: "FFE5E7EB" } },
+        bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+        right: { style: "thin", color: { argb: "FFE5E7EB" } }
+      };
+    });
+  });
+
+  const spotlightStart = Math.max(16, 13 + insights.length + 2);
+  summarySheet.getCell(`A${spotlightStart}`).value = "Top exposicao tributaria";
+  summarySheet.getCell(`A${spotlightStart}`).font = { bold: true, color: { argb: "FF111827" } };
+  summarySheet.getRow(spotlightStart + 1).values = [
+    "Cenario",
+    "Documento",
+    "Tributo final",
+    "Effective rate",
+    "Unsupported",
+    "Acao"
+  ];
+  summarySheet.getRow(spotlightStart + 1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+  summarySheet.getRow(spotlightStart + 1).fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FF2F7369" }
+  };
+
+  spotlight.forEach((item, index) => {
+    const rowNumber = spotlightStart + 2 + index;
+    const row = summarySheet.getRow(rowNumber);
+    row.values = [item.scenario, item.documentKey, item.finalTax, item.effectiveRate, item.unsupportedItems, item.actionHint];
+    row.getCell(3).numFmt = '"R$" #,##0.00';
+    row.getCell(4).numFmt = "0.00%";
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFE5E7EB" } },
+        left: { style: "thin", color: { argb: "FFE5E7EB" } },
+        bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+        right: { style: "thin", color: { argb: "FFE5E7EB" } }
+      };
+      if (index % 2 === 0) {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF9FAFB" } };
+      }
+    });
+  });
+
+  const detailSheet = workbook.addWorksheet(template === "TECHNICAL" ? "Dados Tecnicos" : "Dados Executivos");
+  detailSheet.columns = dataset.columns.map((column) => ({
     header: column.label,
     key: column.key,
     width: column.width ?? 16
   }));
 
   for (const row of dataset.rows) {
-    sheet.addRow(
-      Object.fromEntries(dataset.columns.map((column) => [column.key, row[column.key] ?? null]))
-    );
+    detailSheet.addRow(Object.fromEntries(dataset.columns.map((column) => [column.key, row[column.key] ?? null])));
   }
 
-  const header = sheet.getRow(1);
+  const header = detailSheet.getRow(1);
   header.font = { bold: true, color: { argb: "FFFFFFFF" } };
   header.alignment = { horizontal: "center", vertical: "middle" };
   header.fill = {
@@ -113,8 +227,8 @@ export async function GET(request: Request) {
     fgColor: { argb: "FFB6471E" }
   };
 
-  sheet.views = [{ state: "frozen", ySplit: 1 }];
-  sheet.autoFilter = {
+  detailSheet.views = [{ state: "frozen", ySplit: 1 }];
+  detailSheet.autoFilter = {
     from: { row: 1, column: 1 },
     to: { row: 1, column: dataset.columns.length }
   };
@@ -122,10 +236,10 @@ export async function GET(request: Request) {
   dataset.columns.forEach((column, index) => {
     const fmt = numFmtByType(column.type);
     if (!fmt) return;
-    sheet.getColumn(index + 1).numFmt = fmt;
+    detailSheet.getColumn(index + 1).numFmt = fmt;
   });
 
-  sheet.eachRow((row, rowNumber) => {
+  detailSheet.eachRow((row, rowNumber) => {
     row.alignment = { vertical: "middle" };
     row.eachCell((cell) => {
       cell.border = {

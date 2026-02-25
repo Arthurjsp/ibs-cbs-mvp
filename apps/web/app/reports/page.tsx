@@ -1,6 +1,12 @@
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { buildReportDataset, parseReportTemplate, summarizeReportDataset } from "@/lib/reports/template";
+import {
+  buildExecutiveInsights,
+  buildExecutiveSpotlight,
+  buildReportDataset,
+  parseReportTemplate,
+  summarizeReportDataset
+} from "@/lib/reports/template";
 import { monthRange } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,6 +36,12 @@ function formatCell(value: string | number | Date | null, type: "text" | "dateti
   if (type === "percent") return `${(Number(value) * 100).toFixed(2)}%`;
   if (type === "number") return Number(value).toLocaleString("pt-BR");
   return String(value);
+}
+
+function insightTone(severity: "HIGH" | "MEDIUM" | "LOW") {
+  if (severity === "HIGH") return "border-destructive/30 bg-destructive/5 text-destructive";
+  if (severity === "MEDIUM") return "border-amber-300 bg-amber-50 text-amber-800";
+  return "border-emerald-300 bg-emerald-50 text-emerald-800";
 }
 
 export default async function ReportsPage({ searchParams }: Props) {
@@ -77,6 +89,8 @@ export default async function ReportsPage({ searchParams }: Props) {
     }))
   });
   const summary = summarizeReportDataset(dataset);
+  const insights = buildExecutiveInsights(dataset);
+  const spotlight = buildExecutiveSpotlight(dataset, 3);
 
   const csvHref = `/api/reports/csv?month=${encodeURIComponent(month)}${
     scenarioId ? `&scenarioId=${encodeURIComponent(scenarioId)}` : ""
@@ -189,6 +203,50 @@ export default async function ReportsPage({ searchParams }: Props) {
             <CardDescription>Itens unsupported</CardDescription>
             <CardTitle>{summary.unsupportedItems}</CardTitle>
           </CardHeader>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumo para diretoria</CardTitle>
+            <CardDescription>Leitura executiva do periodo com foco em risco e acao.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {insights.map((insight) => (
+              <div key={`${insight.severity}-${insight.title}`} className={`rounded-md border p-3 ${insightTone(insight.severity)}`}>
+                <p className="font-medium">
+                  {insight.severity} | {insight.title}
+                </p>
+                <p className="mt-1">{insight.detail}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Maior exposicao no periodo</CardTitle>
+            <CardDescription>Top documentos/cenarios por tributo final estimado.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {spotlight.length > 0 ? (
+              spotlight.map((row) => (
+                <div key={`${row.documentKey}-${row.scenario}`} className="rounded-md border p-3">
+                  <p className="font-medium">
+                    {row.scenario} | {row.documentKey}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Tributo: {currencyFormatter.format(row.finalTax)} | Effective rate: {(row.effectiveRate * 100).toFixed(2)}% |
+                    Unsupported: {row.unsupportedItems}
+                  </p>
+                  <p className="text-muted-foreground">Acao: {row.actionHint}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">Sem dados para destacar exposicao no recorte atual.</p>
+            )}
+          </CardContent>
         </Card>
       </div>
 

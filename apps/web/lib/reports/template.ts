@@ -59,6 +59,21 @@ export interface ReportDataset {
   rows: ReportRow[];
 }
 
+export interface ExecutiveInsight {
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  title: string;
+  detail: string;
+}
+
+export interface ExecutiveSpotlightRow {
+  scenario: string;
+  documentKey: string;
+  finalTax: number;
+  effectiveRate: number;
+  unsupportedItems: number;
+  actionHint: string;
+}
+
 export function parseReportTemplate(value: string | null | undefined): ReportTemplate {
   if (value === "TECHNICAL") return "TECHNICAL";
   return "EXECUTIVE";
@@ -182,4 +197,68 @@ export function summarizeReportDataset(dataset: ReportDataset) {
     unsupportedItems,
     avgEffectiveRate
   };
+}
+
+export function buildExecutiveInsights(dataset: ReportDataset): ExecutiveInsight[] {
+  const summary = summarizeReportDataset(dataset);
+  const insights: ExecutiveInsight[] = [];
+
+  if (summary.rowCount === 0) {
+    insights.push({
+      severity: "LOW",
+      title: "Sem runs no filtro",
+      detail: "Nao ha dados no periodo selecionado. Amplie o recorte para gerar leitura executiva."
+    });
+    return insights;
+  }
+
+  if (summary.unsupportedItems > 0) {
+    insights.push({
+      severity: "HIGH",
+      title: "Itens com limitacao de cobertura",
+      detail: `${summary.unsupportedItems} item(ns) unsupported no periodo. Priorize revisao de regras/UF antes de decisao de preco.`
+    });
+  }
+
+  if (summary.avgEffectiveRate >= 0.25) {
+    insights.push({
+      severity: "MEDIUM",
+      title: "Effective rate elevado",
+      detail: `Media de ${(summary.avgEffectiveRate * 100).toFixed(2)}% no recorte. Simule repasse e ajuste de mix para proteger margem.`
+    });
+  }
+
+  if (summary.totalCredit > 0) {
+    insights.push({
+      severity: "LOW",
+      title: "Credito potencial identificado",
+      detail: `Credito total estimado de R$ ${summary.totalCredit.toFixed(
+        2
+      )}. Planeje estrategia de utilizacao e evidencia no fechamento.`
+    });
+  }
+
+  if (insights.length === 0) {
+    insights.push({
+      severity: "LOW",
+      title: "Cenario estavel",
+      detail: "Sem alertas criticos no recorte atual. Mantenha monitoramento mensal e simulacoes de sensibilidade."
+    });
+  }
+
+  return insights;
+}
+
+export function buildExecutiveSpotlight(dataset: ReportDataset, limit = 5): ExecutiveSpotlightRow[] {
+  return dataset.rows
+    .map((row) => ({
+      scenario: String(row.scenario ?? "BASELINE"),
+      documentKey: String(row.documentKey ?? "-"),
+      finalTax: Number(row.finalTax ?? 0),
+      effectiveRate: Number(row.effectiveRate ?? 0),
+      unsupportedItems: Number(row.unsupportedItems ?? 0),
+      actionHint: String(row.actionHint ?? "-")
+    }))
+    .sort((a, b) => b.finalTax - a.finalTax)
+    .slice(0, Math.max(limit, 0));
 }

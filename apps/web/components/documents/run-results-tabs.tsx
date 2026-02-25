@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { buildReadableAuditEntries } from "@/lib/documents/audit-readable";
@@ -82,12 +83,53 @@ function toRate(value: number | undefined, places = 4) {
   return value.toFixed(places);
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object") return null;
+  return value as Record<string, unknown>;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function hasUnsupported(audit: unknown) {
+  const legacy = asRecord(asRecord(audit)?.engines)?.legacy;
+  const unsupported = asRecord(legacy)?.unsupported;
+  const reasons = asArray(asRecord(legacy)?.unsupportedReasons);
+  return unsupported === true || reasons.length > 0;
+}
+
+function hasMatchedIbsRule(audit: unknown) {
+  const ibsAudit = asArray(asRecord(asRecord(asRecord(audit)?.engines)?.ibs)?.audit).map(asRecord).filter(Boolean);
+  if (ibsAudit.length === 0) return false;
+  return ibsAudit.some((entry) => entry?.matched === true);
+}
+
+function auditSeverity(audit: unknown, perspective: "legacy" | "ibs" | "transition"): "ALTA" | "MEDIA" | "BAIXA" {
+  if (hasUnsupported(audit)) return "ALTA";
+  if (perspective === "ibs" && !hasMatchedIbsRule(audit)) return "MEDIA";
+  return "BAIXA";
+}
+
+function severityClass(severity: "ALTA" | "MEDIA" | "BAIXA") {
+  if (severity === "ALTA") return "bg-destructive/10 text-destructive border-destructive/30";
+  if (severity === "MEDIA") return "bg-amber-100 text-amber-800 border-amber-200";
+  return "bg-emerald-100 text-emerald-800 border-emerald-200";
+}
+
 function AuditTrailCell({ audit, perspective }: { audit: unknown; perspective: "legacy" | "ibs" | "transition" }) {
   const entries = buildReadableAuditEntries(audit, perspective);
+  const severity = auditSeverity(audit, perspective);
 
   return (
-    <div className="max-w-[360px] text-xs">
-      <details>
+    <div className="max-w-[380px] space-y-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 p-2">
+        <Badge variant="outline" className={severityClass(severity)}>
+          Prioridade {severity}
+        </Badge>
+        <p className="text-muted-foreground">{entries[0] ?? "Sem resumo de auditoria para este item."}</p>
+      </div>
+      <details className="rounded-md border bg-card p-2">
         <summary className="cursor-pointer text-primary">Ver trilha explicada</summary>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
           {entries.map((entry) => (
@@ -95,7 +137,7 @@ function AuditTrailCell({ audit, perspective }: { audit: unknown; perspective: "
           ))}
         </ul>
       </details>
-      <details className="mt-2">
+      <details className="rounded-md border bg-card p-2">
         <summary className="cursor-pointer text-muted-foreground">JSON bruto</summary>
         <pre className="mt-1 overflow-auto whitespace-pre-wrap rounded bg-muted p-2">{JSON.stringify(audit, null, 2)}</pre>
       </details>

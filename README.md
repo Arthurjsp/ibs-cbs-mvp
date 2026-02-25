@@ -232,3 +232,11 @@ Detalhamento tecnico:
 - Billing com barra de consumo, alerta de limite e telemetria operacional de uso.
 - Detalhamento tecnico:
   - `docs/phase-9-governance-confidence-reports.md`
+
+## Fase 10 - Polimento Executivo (D+30.1)
+
+- Auditoria por item com layout executivo (prioridade, resumo e trilha explicada).
+- Export XLSX com aba adicional `Resumo Diretoria`.
+- Bloco executivo no `/reports` com insights e maior exposicao tributaria.
+- Detalhamento tecnico:
+  - `docs/phase-10-executive-polish.md`
