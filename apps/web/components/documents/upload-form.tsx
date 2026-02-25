@@ -1,8 +1,10 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Circle, CircleDashed } from "lucide-react";
 import { MAX_NFE_XML_SIZE_BYTES } from "@/lib/xml/constants";
+import { buildUploadFlowSteps, UploadFlowStep, UploadStepStatus } from "@/lib/upload/flow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,35 @@ interface UploadResponsePayload {
 
 function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function stepTone(status: UploadStepStatus) {
+  if (status === "completed") return "text-emerald-700";
+  if (status === "error") return "text-destructive";
+  if (status === "current") return "text-foreground";
+  return "text-muted-foreground";
+}
+
+function StepIcon({ status }: { status: UploadStepStatus }) {
+  if (status === "completed") return <CheckCircle2 className="h-4 w-4 text-emerald-700" aria-hidden="true" />;
+  if (status === "error") return <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />;
+  if (status === "current") return <CircleDashed className="h-4 w-4 text-primary" aria-hidden="true" />;
+  return <Circle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
+}
+
+function UploadStepRow({ step, index }: { step: UploadFlowStep; index: number }) {
+  return (
+    <li className="flex items-start gap-3 rounded-md bg-card px-3 py-2">
+      <div className="mt-0.5 flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">{index + 1}</span>
+        <StepIcon status={step.status} />
+      </div>
+      <div className="space-y-0.5">
+        <p className={`text-sm font-medium ${stepTone(step.status)}`}>{step.title}</p>
+        <p className="text-xs text-muted-foreground">{step.description}</p>
+      </div>
+    </li>
+  );
 }
 
 export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
@@ -41,6 +72,13 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
     return null;
   }, [file]);
 
+  const steps = buildUploadFlowSteps({
+    hasCompany: Boolean(companyProfileId),
+    hasFile: Boolean(file),
+    localValidationError,
+    loading
+  });
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!file) {
@@ -50,6 +88,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
     }
     if (localValidationError) {
       setError(localValidationError);
+      setDetails([]);
       return;
     }
 
@@ -61,28 +100,41 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
     formData.append("file", file);
     if (companyProfileId) formData.append("companyProfileId", companyProfileId);
 
-    const response = await fetch("/api/documents/upload", {
-      method: "POST",
-      body: formData
-    });
-    const payload = (await response.json()) as UploadResponsePayload;
-    setLoading(false);
+    try {
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        body: formData
+      });
+      const payload = (await response.json()) as UploadResponsePayload;
+      setLoading(false);
 
-    if (!response.ok || !payload.id) {
-      setError(payload.error ?? "Falha ao importar XML.");
-      setDetails(payload.details ?? []);
-      return;
+      if (!response.ok || !payload.id) {
+        setError(payload.error ?? "Falha ao importar XML.");
+        setDetails(payload.details ?? []);
+        return;
+      }
+
+      router.push(`/documents/${payload.id}`);
+      router.refresh();
+    } catch {
+      setLoading(false);
+      setError("Falha de conexão ao enviar o XML.");
+      setDetails(["Verifique sua conexão e tente novamente."]);
     }
-
-    router.push(`/documents/${payload.id}`);
-    router.refresh();
   }
 
   return (
     <div className="space-y-5">
-      <div className="rounded-md border bg-muted/40 p-4 text-sm">
-        <p className="font-medium">Passo a passo do upload</p>
-        <p className="text-muted-foreground">1) Selecione a empresa 2) Envie o XML 3) Revise erros 4) Continue para cálculo</p>
+      <div className="rounded-md border bg-muted/40 p-4">
+        <p className="text-sm font-medium">Fluxo guiado de importação</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Acompanhe as etapas abaixo para concluir o upload e seguir para o cálculo em poucos minutos.
+        </p>
+        <ol className="mt-3 space-y-2">
+          {steps.map((step, index) => (
+            <UploadStepRow key={step.id} step={step} index={index} />
+          ))}
+        </ol>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -100,6 +152,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
               </option>
             ))}
           </select>
+          <p className="text-xs text-muted-foreground">O documento será vinculado a esta empresa dentro do tenant ativo.</p>
         </div>
 
         <div className="space-y-2">
@@ -112,7 +165,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
             required
           />
           <p className="text-xs text-muted-foreground">
-            Limite: {formatSize(MAX_NFE_XML_SIZE_BYTES)}. Formato esperado: NF-e modelo 55 em XML.
+            Limite: {formatSize(MAX_NFE_XML_SIZE_BYTES)}. Formato esperado: NF-e modelo 55 em XML (layout 4.00).
           </p>
           {file ? (
             <p className="text-xs text-muted-foreground">
@@ -121,7 +174,11 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
           ) : null}
         </div>
 
-        {localValidationError ? <p className="text-sm text-destructive">{localValidationError}</p> : null}
+        {localValidationError ? (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+            <p className="font-medium text-destructive">Validação local: {localValidationError}</p>
+          </div>
+        ) : null}
 
         {error ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
@@ -137,7 +194,7 @@ export function UploadXmlForm({ companies }: { companies: CompanyOption[] }) {
         ) : null}
 
         <Button type="submit" disabled={loading || Boolean(localValidationError)}>
-          {loading ? "Importando..." : "Importar XML"}
+          {loading ? "Importando XML..." : "Importar XML e abrir documento"}
         </Button>
       </form>
     </div>

@@ -1,9 +1,19 @@
-﻿export function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2)}`;
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL"
+});
+
+const percentFormatter = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+export function formatCurrency(value: number): string {
+  return currencyFormatter.format(value);
 }
 
 export function formatPercent(rate: number): string {
-  return `${(rate * 100).toFixed(2)}%`;
+  return `${percentFormatter.format(rate * 100)}%`;
 }
 
 export function buildEffectiveRateMessage(effectiveRate: number, baseValue: number) {

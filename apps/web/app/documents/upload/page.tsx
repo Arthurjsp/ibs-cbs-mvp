@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,28 +31,42 @@ export default async function UploadDocumentPage() {
 
   return (
     <div className="space-y-4">
-      <Card className="max-w-3xl">
+      <Card className="max-w-4xl">
         <CardHeader>
           <CardTitle>Upload XML NF-e</CardTitle>
-          <CardDescription>Importe o XML para normalizar itens, NCM e valores no tenant atual.</CardDescription>
+          <CardDescription>
+            Importe o XML para normalizar itens, NCM e valores no tenant atual e seguir para o cálculo com trilha de auditoria.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <UploadXmlForm companies={companies} />
         </CardContent>
       </Card>
 
-      <Card className="max-w-3xl">
-        <CardHeader>
-          <CardTitle>Dicas para evitar erro de importação</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1 text-sm text-muted-foreground">
-          <p>- Verifique se o arquivo é XML NF-e modelo 55.</p>
-          <p>- Confirme se existe bloco infNFe e pelo menos um item det/prod.</p>
-          <p>- Revise UF do emitente/destinatário e data de emissão.</p>
-          <p>- Se o documento já existir, consulte em /documents.</p>
-        </CardContent>
-      </Card>
+      <div className="grid max-w-4xl gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>O que acontece após o upload</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>1) O documento e os itens são persistidos no tenant.</p>
+            <p>2) O XML bruto é armazenado para rastreabilidade.</p>
+            <p>3) Você é direcionado para a tela de cálculo do documento.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Checklist de validação</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>- Arquivo XML NF-e modelo 55 (layout 4.00).</p>
+            <p>- Bloco `infNFe` e ao menos um item `det/prod`.</p>
+            <p>- UF emitente/destinatário e data de emissão preenchidas.</p>
+            <p>- Chave ainda não importada no mesmo tenant.</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-

@@ -30,6 +30,18 @@ export function monthKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+export function formatMonthKey(month: string): string {
+  const [year, monthPart] = month.split("-").map(Number);
+  const date = new Date(Date.UTC(year, monthPart - 1, 1));
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  })
+    .format(date)
+    .replace(".", "");
+}
+
 export function shiftMonthKey(month: string, deltaMonths: number): string {
   const [year, monthPart] = month.split("-").map(Number);
   const date = new Date(Date.UTC(year, monthPart - 1 + deltaMonths, 1));

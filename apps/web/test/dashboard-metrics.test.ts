@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildMonthlyRows, calculateVariation, monthKey, shiftMonthKey, shiftYearKey } from "../lib/dashboard/metrics";
+import {
+  buildMonthlyRows,
+  calculateVariation,
+  formatMonthKey,
+  monthKey,
+  shiftMonthKey,
+  shiftYearKey
+} from "../lib/dashboard/metrics";
 
 describe("dashboard metrics helpers", () => {
   it("builds monthly rows with aggregated totals and average effective rate", () => {
@@ -42,6 +49,7 @@ describe("dashboard metrics helpers", () => {
     expect(monthKey(new Date("2026-02-01T00:00:00.000Z"))).toBe("2026-02");
     expect(shiftMonthKey("2026-01", -1)).toBe("2025-12");
     expect(shiftYearKey("2026-02", -1)).toBe("2025-02");
+    expect(formatMonthKey("2026-02")).toContain("2026");
   });
 
   it("calculates variation and handles zero reference", () => {
