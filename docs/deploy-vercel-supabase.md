@@ -113,3 +113,29 @@ git push
 ```
 
 A Vercel fará deploy automático.
+
+## 8) Stripe (billing funcional)
+
+Defina estas variáveis na Vercel (Production e Preview):
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_PRO`
+- `STRIPE_PRICE_ENTERPRISE`
+
+No Stripe Dashboard:
+
+1. Crie os produtos/price IDs para PRO e ENTERPRISE.
+2. Configure um webhook para:
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+3. URL do webhook:
+- `https://SEU-PROJETO.vercel.app/api/billing/webhook`
+4. Copie o `Signing secret` para `STRIPE_WEBHOOK_SECRET`.
+
+Fluxo validado no produto:
+
+- Upgrade: tela `/billing` -> Checkout -> retorno para `/billing?checkout=success`
+- Sincronização do plano: webhook Stripe atualiza `Tenant.plan` e metadados de assinatura
+- Gestão de assinatura: botão `Gerenciar assinatura no Stripe` abre Billing Portal

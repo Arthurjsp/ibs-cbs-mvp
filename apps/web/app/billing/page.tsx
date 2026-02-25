@@ -2,6 +2,7 @@ import { TelemetryEventType, TenantPlan } from "@prisma/client";
 import { requireRoles } from "@/lib/auth";
 import { PLAN_LIMITS, checkSimulationLimit } from "@/lib/billing";
 import { prisma } from "@/lib/prisma";
+import { isStripeConfigured, isStripePortalConfigured } from "@/lib/stripe-billing";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ function limitLabel(plan: TenantPlan) {
 function planDescription(plan: TenantPlan) {
   if (plan === "FREE") return "Ideal para validação inicial de cenários.";
   if (plan === "PRO") return "Operação recorrente com time fiscal e financeiro.";
-  return "Escala multi-área com alto volume e governança.";
+  return "Escala multiárea com alto volume e governança.";
 }
 
 function usageTone(usagePercent: number) {
@@ -31,15 +32,42 @@ function usageStatusText(usagePercent: number) {
   return "Dentro do limite";
 }
 
-export default async function BillingPage() {
+function subscriptionStatusLabel(status: string | null | undefined) {
+  if (!status) return "Sem assinatura ativa";
+  const map: Record<string, string> = {
+    active: "Ativa",
+    trialing: "Em trial",
+    past_due: "Pagamento pendente",
+    canceled: "Cancelada",
+    unpaid: "Não paga",
+    incomplete: "Incompleta",
+    incomplete_expired: "Expirada"
+  };
+  return map[status] ?? status;
+}
+
+interface Props {
+  searchParams?: Record<string, string | string[] | undefined>;
+}
+
+export default async function BillingPage({ searchParams }: Props) {
   const user = await requireRoles(["ADMIN", "CFO"]);
   const monthRef = new Date();
   const telemetryFrom = new Date(monthRef.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const stripeCheckoutReady = isStripeConfigured();
+  const stripePortalReady = isStripePortalConfigured();
 
   const [tenant, usage, telemetryCounts] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: user.tenantId },
-      select: { name: true, plan: true }
+      select: {
+        name: true,
+        plan: true,
+        stripeCustomerId: true,
+        stripeSubscriptionId: true,
+        stripeSubscriptionStatus: true,
+        stripeCurrentPeriodEnd: true
+      }
     }),
     checkSimulationLimit(user.tenantId),
     prisma.telemetryEvent.groupBy({
@@ -55,15 +83,38 @@ export default async function BillingPage() {
   const monthLabel = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(monthRef);
   const usagePercent = usage.limit ? Math.min((usage.used / usage.limit) * 100, 100) : 0;
   const telemetryByType = new Map<TelemetryEventType, number>(telemetryCounts.map((row) => [row.type, row._count._all]));
+  const checkoutStatus = typeof searchParams?.checkout === "string" ? searchParams.checkout : undefined;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Billing e consumo</h1>
-        <p className="text-sm text-muted-foreground">
-          Nesta tela você decide quando mudar de plano, com base no uso real do mês.
-        </p>
+        <p className="text-sm text-muted-foreground">Nesta tela você decide quando mudar de plano com base no uso real do mês.</p>
       </div>
+
+      {checkoutStatus === "success" ? (
+        <div className="rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800" role="status">
+          Checkout concluído. Aguarde alguns segundos para sincronização via webhook.
+        </div>
+      ) : null}
+
+      {checkoutStatus === "cancel" ? (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="status">
+          Checkout cancelado. Nenhuma alteração de plano foi aplicada.
+        </div>
+      ) : null}
+
+      {!stripePortalReady ? (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+          Stripe não configurado neste ambiente. Defina `STRIPE_SECRET_KEY` para habilitar portal e checkout.
+        </div>
+      ) : null}
+
+      {stripePortalReady && !stripeCheckoutReady ? (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+          Checkout incompleto. Defina `STRIPE_PRICE_PRO` e `STRIPE_PRICE_ENTERPRISE` para habilitar upgrade de plano.
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -100,12 +151,44 @@ export default async function BillingPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Assinatura Stripe</CardTitle>
+          <CardDescription>Status da cobrança e sincronização do plano.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p>
+            Status: <span className="font-medium">{subscriptionStatusLabel(tenant?.stripeSubscriptionStatus)}</span>
+          </p>
+          <p>
+            Customer: <span className="font-mono text-xs">{tenant?.stripeCustomerId ?? "não criado"}</span>
+          </p>
+          <p>
+            Subscription: <span className="font-mono text-xs">{tenant?.stripeSubscriptionId ?? "sem assinatura"}</span>
+          </p>
+          <p>
+            Próximo ciclo:{" "}
+            <span className="font-medium">
+              {tenant?.stripeCurrentPeriodEnd ? new Date(tenant.stripeCurrentPeriodEnd).toLocaleDateString("pt-BR") : "-"}
+            </span>
+          </p>
+          <div>
+            <form action="/api/billing/portal" method="POST">
+              <Button type="submit" variant="outline" disabled={!stripePortalReady}>
+                Gerenciar assinatura no Stripe
+              </Button>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Planos disponíveis</CardTitle>
-          <CardDescription>Estrutura comercial do MVP com bloqueio de limite ativo.</CardDescription>
+          <CardDescription>Upgrade por checkout Stripe e sincronização automática via webhook.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           {planOrder.map((plan) => {
             const isCurrent = (tenant?.plan ?? "FREE") === plan;
+            const isPaid = plan !== "FREE";
             return (
               <div key={plan} className={`rounded-md border p-4 ${isCurrent ? "border-primary" : ""}`}>
                 <p className="text-sm font-medium">{plan}</p>
@@ -114,10 +197,15 @@ export default async function BillingPage() {
                 <div className="mt-3 flex items-center gap-2">
                   {isCurrent ? (
                     <Badge variant="secondary">Plano atual</Badge>
+                  ) : isPaid ? (
+                    <form action="/api/billing/checkout" method="POST">
+                      <input type="hidden" name="plan" value={plan} />
+                      <Button type="submit" variant="outline" size="sm" disabled={!stripeCheckoutReady}>
+                        Assinar {plan}
+                      </Button>
+                    </form>
                   ) : (
-                    <Button variant="outline" size="sm" disabled={plan === "FREE"}>
-                      Solicitar upgrade
-                    </Button>
+                    <Badge variant="outline">Sem cobrança</Badge>
                   )}
                 </div>
               </div>
@@ -140,19 +228,6 @@ export default async function BillingPage() {
             <li>Exports XLSX: {telemetryByType.get("EXPORT_XLSX") ?? 0}</li>
             <li>Divergências justificadas: {telemetryByType.get("DIVERGENCE_JUSTIFIED") ?? 0}</li>
           </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Stripe scaffold</CardTitle>
-          <CardDescription>Estrutura pronta para cobrança, sem pagamento real no MVP atual.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>- Criação de Customer por tenant.</p>
-          <p>- Checkout/session para upgrade FREE para PRO ou ENTERPRISE.</p>
-          <p>- Webhook para sincronizar plano em `Tenant.plan`.</p>
-          <p>- Bloqueio automático de cálculo ao exceder limite mensal.</p>
         </CardContent>
       </Card>
     </div>
