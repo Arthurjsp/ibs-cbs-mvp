@@ -159,7 +159,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" method="GET">
-            <div className="grid gap-3 lg:grid-cols-12 lg:items-end">
+            <div className="grid gap-3 lg:grid-cols-12 lg:items-start">
               <div className="space-y-1 lg:col-span-3">
                 <label htmlFor="month" className="text-sm font-medium">
                   Mês (YYYY-MM)
@@ -211,7 +211,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                 </select>
               </div>
 
-              <div className="lg:col-span-3 lg:pb-0.5">
+              <div className="lg:col-span-3 lg:pt-7">
                 <Button type="submit" variant="outline" className="w-full lg:w-auto">
                   Aplicar
                 </Button>
