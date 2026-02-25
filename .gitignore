@@ -8,3 +8,5 @@ coverage
 *.log
 uploads
 *.tsbuildinfo
+tmp-*
+docs/perf-measurements.csv
