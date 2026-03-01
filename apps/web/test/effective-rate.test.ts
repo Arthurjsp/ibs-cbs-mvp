@@ -11,7 +11,7 @@ describe("effective rate trust messages", () => {
   it("builds a message with estimated tax amount", () => {
     const result = buildEffectiveRateMessage(0.26, 100000);
     expect(result.estimatedTax).toBe(26000);
-    expect(result.message).toContain("Effective rate = (IBS + CBS + IS) / base tributável.");
+    expect(result.message).toContain("Effective rate = tributo final estimado / base tributável.");
     expect(result.message).toMatch(/R\$\s?26\.000,00/);
   });
 });

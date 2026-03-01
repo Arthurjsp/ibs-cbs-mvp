@@ -64,12 +64,18 @@ export default async function DashboardPage() {
       orderBy: { runAt: "asc" },
       select: {
         runAt: true,
+        document: {
+          select: {
+            totalValue: true
+          }
+        },
         summary: {
           select: {
             ibsTotal: true,
             cbsTotal: true,
             isTotal: true,
-            effectiveRate: true
+            effectiveRate: true,
+            componentsJson: true
           }
         }
       }
@@ -144,19 +150,30 @@ export default async function DashboardPage() {
   const prevMonth = shiftMonthKey(currentMonth, -1);
   const sameMonthLastYear = shiftYearKey(currentMonth, -1);
 
-  const emptyRow = { month: currentMonth, ibsTotal: 0, cbsTotal: 0, isTotal: 0, effectiveRate: 0, simulations: 0 };
+  const emptyRow = {
+    month: currentMonth,
+    ibsTotal: 0,
+    cbsTotal: 0,
+    isTotal: 0,
+    finalTaxTotal: 0,
+    taxBaseTotal: 0,
+    effectiveRate: 0,
+    simulations: 0
+  };
   const current = rowByMonth.get(currentMonth) ?? emptyRow;
   const previous = rowByMonth.get(prevMonth) ?? emptyRow;
   const previousYear = rowByMonth.get(sameMonthLastYear) ?? emptyRow;
 
-  const currentTax = current.ibsTotal + current.cbsTotal + current.isTotal;
-  const previousTax = previous.ibsTotal + previous.cbsTotal + previous.isTotal;
-  const previousYearTax = previousYear.ibsTotal + previousYear.cbsTotal + previousYear.isTotal;
+  const currentTax = current.finalTaxTotal;
+  const previousTax = previous.finalTaxTotal;
+  const previousYearTax = previousYear.finalTaxTotal;
 
   const taxMom = calculateVariation(currentTax, previousTax);
   const taxYoy = calculateVariation(currentTax, previousYearTax);
   const rateMom = calculateVariation(current.effectiveRate * 100, previous.effectiveRate * 100);
   const rateYoy = calculateVariation(current.effectiveRate * 100, previousYear.effectiveRate * 100);
+  const rateMomPp = previous.simulations > 0 ? rateMom.delta : null;
+  const rateYoyPp = previousYear.simulations > 0 ? rateYoy.delta : null;
   const simMom = calculateVariation(current.simulations, previous.simulations);
   const simYoy = calculateVariation(current.simulations, previousYear.simulations);
 
@@ -167,7 +184,7 @@ export default async function DashboardPage() {
     simulations: totalSimulations
   };
 
-  const effectiveRateLegend = buildEffectiveRateMessage(current.effectiveRate, Math.max(currentTax, 100000));
+  const effectiveRateLegend = buildEffectiveRateMessage(current.effectiveRate, Math.max(current.taxBaseTotal, 100000));
 
   const telemetryByType = new Map<TelemetryEventType, number>(telemetryCounts.map((row) => [row.type, row._count._all]));
   const creditStatusMap = new Map(creditByStatus.map((row) => [row.status, Number(row._sum.amount ?? 0)]));
@@ -231,7 +248,8 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
           <p>
-            <span className="font-medium text-foreground">Carga estimada:</span> soma de IBS + CBS + IS do mês.
+            <span className="font-medium text-foreground">Carga estimada:</span> tributo final da transição
+            (legado + IBS/CBS/IS ponderados) no mês.
           </p>
           <p>
             <span className="font-medium text-foreground">MoM:</span> compara o mês atual com o mês anterior.
@@ -246,7 +264,7 @@ export default async function DashboardPage() {
         <ExecutiveKpiCard
           title="Carga tributária estimada (mês)"
           value={toCurrency(currentTax)}
-          whatIsIt="Total mensal de IBS/CBS/IS nas simulações do mês corrente."
+          whatIsIt="Total mensal do tributo final (transição) nas simulações do mês corrente."
           whyItMatters="Mostra o tamanho do impacto tributário no caixa e na margem."
           action="Se subir, revise repasse e mix antes de fechar preço."
           tooltipExample="Se subir 8% no MoM, a margem pode cair se o repasse não for ajustado."
@@ -260,8 +278,8 @@ export default async function DashboardPage() {
           whyItMatters="Ajuda a comparar cenários com bases diferentes de faturamento."
           action="Se ficar alto, rode cenário com transição e revise categorias mais sensíveis."
           tooltipExample="26% sobre R$ 1.000.000 implica cerca de R$ 260.000 de carga estimada."
-          mom={{ label: "MoM (p.p.)", value: rateMom.delta, asPercent: false }}
-          yoy={{ label: "YoY (p.p.)", value: rateYoy.delta, asPercent: false }}
+          mom={{ label: "MoM (p.p.)", value: rateMomPp, asPercent: false }}
+          yoy={{ label: "YoY (p.p.)", value: rateYoyPp, asPercent: false }}
         />
         <ExecutiveKpiCard
           title="Simulações executadas (mês)"

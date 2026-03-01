@@ -9,18 +9,29 @@ import {
 } from "../lib/dashboard/metrics";
 
 describe("dashboard metrics helpers", () => {
-  it("builds monthly rows with aggregated totals and average effective rate", () => {
+  it("builds monthly rows with aggregated totals and weighted effective rate", () => {
     const rows = buildMonthlyRows([
       {
         runAt: new Date("2026-02-05T00:00:00.000Z"),
+        document: { totalValue: 1000 },
         summary: { ibsTotal: 100, cbsTotal: 50, isTotal: 10, effectiveRate: 0.2 }
       },
       {
         runAt: new Date("2026-02-10T00:00:00.000Z"),
-        summary: { ibsTotal: 50, cbsTotal: 20, isTotal: 5, effectiveRate: 0.3 }
+        document: { totalValue: 500 },
+        summary: {
+          ibsTotal: 50,
+          cbsTotal: 20,
+          isTotal: 5,
+          effectiveRate: 0.3,
+          componentsJson: {
+            transition: { totalTax: 70 }
+          }
+        }
       },
       {
         runAt: new Date("2026-01-10T00:00:00.000Z"),
+        document: { totalValue: 160 },
         summary: { ibsTotal: 10, cbsTotal: 5, isTotal: 1, effectiveRate: 0.1 }
       }
     ]);
@@ -31,6 +42,8 @@ describe("dashboard metrics helpers", () => {
         ibsTotal: 10,
         cbsTotal: 5,
         isTotal: 1,
+        finalTaxTotal: 16,
+        taxBaseTotal: 160,
         effectiveRate: 0.1,
         simulations: 1
       },
@@ -39,7 +52,9 @@ describe("dashboard metrics helpers", () => {
         ibsTotal: 150,
         cbsTotal: 70,
         isTotal: 15,
-        effectiveRate: 0.25,
+        finalTaxTotal: 230,
+        taxBaseTotal: 1500,
+        effectiveRate: 0.153333,
         simulations: 2
       }
     ]);
